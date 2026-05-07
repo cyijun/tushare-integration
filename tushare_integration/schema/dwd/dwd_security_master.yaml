@@ -1,0 +1,147 @@
+id: 2011
+name: dwd_security_master
+comment: 统一证券主数据标准层
+builder: security_master
+schema:
+  comment: 统一证券主数据标准层
+  primary_key: []
+  partition_key:
+    - toYear(available_trade_date)
+  indexes:
+    - name: dwd_security_master_idx
+      columns:
+        - instrument_id
+        - event_date
+        - sys_from
+  columns:
+    - name: instrument_id
+      data_type: str
+      length: 64
+      comment: 统一证券ID
+    - name: instrument_type
+      data_type: str
+      length: 32
+      comment: 证券类型
+    - name: exchange
+      data_type: str
+      length: 32
+      comment: 交易所
+    - name: source_code
+      data_type: str
+      length: 64
+      comment: 源侧证券代码
+    - name: symbol
+      data_type: str
+      length: 64
+      nullable: true
+      comment: 交易代码
+    - name: instrument_name
+      data_type: str
+      length: 255
+      nullable: true
+      comment: 证券简称
+    - name: full_name
+      data_type: str
+      length: 255
+      nullable: true
+      comment: 全称
+    - name: english_name
+      data_type: str
+      length: 255
+      nullable: true
+      comment: 英文名称
+    - name: market
+      data_type: str
+      length: 64
+      nullable: true
+      comment: 市场类型
+    - name: category
+      data_type: str
+      length: 128
+      nullable: true
+      comment: 分类
+    - name: publisher
+      data_type: str
+      length: 255
+      nullable: true
+      comment: 发布方
+    - name: currency
+      data_type: str
+      length: 32
+      nullable: true
+      comment: 交易货币
+    - name: list_status
+      data_type: str
+      length: 32
+      nullable: true
+      comment: 上市状态
+    - name: list_date
+      data_type: date
+      nullable: true
+      comment: 上市日期
+    - name: delist_date
+      data_type: date
+      nullable: true
+      comment: 退市日期
+    - name: area
+      data_type: str
+      length: 128
+      nullable: true
+      comment: 所属地域
+    - name: industry
+      data_type: str
+      length: 128
+      nullable: true
+      comment: 所属行业
+    - name: is_hs
+      data_type: str
+      length: 32
+      nullable: true
+      comment: 沪深港通标识
+    - name: underlying_code
+      data_type: str
+      length: 64
+      nullable: true
+      comment: 标的代码
+    - name: contract_multiplier
+      data_type: float
+      nullable: true
+      comment: 合约乘数
+    - name: trade_unit
+      data_type: str
+      length: 64
+      nullable: true
+      comment: 交易单位
+    - name: quote_unit
+      data_type: str
+      length: 64
+      nullable: true
+      comment: 报价单位
+    - name: event_date
+      data_type: date
+      comment: 业务归属日期
+    - name: available_trade_date
+      data_type: date
+      comment: 最早可用交易日
+    - name: sys_from
+      data_type: datetime
+      comment: 版本开始时间
+    - name: sys_to
+      data_type: datetime
+      comment: 版本结束时间
+    - name: source
+      data_type: str
+      length: 32
+      comment: 来源系统
+    - name: source_table
+      data_type: str
+      length: 64
+      comment: 来源表
+    - name: source_batch_id
+      data_type: str
+      length: 64
+      comment: 来源批次ID
+    - name: source_record_hash
+      data_type: str
+      length: 32
+      comment: 来源记录哈希

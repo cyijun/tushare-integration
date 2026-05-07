@@ -1,4 +1,4 @@
 .codex
 .gitignore
-.gitignore
+logs
 __pycache__

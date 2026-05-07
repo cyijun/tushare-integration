@@ -1,0 +1,17 @@
+id: 2001
+name: dwd_trade_calendar
+comment: 交易日历标准层
+builder: raw_versioned
+with_instrument: false
+source:
+  table_name: trade_cal_raw
+  schema_name: stock/basic/trade_cal
+event_date_expr: src.cal_date
+available_trade_date_expr: src.cal_date
+partition_key:
+  - toYear(event_date)
+indexes:
+  - name: dwd_trade_calendar_idx
+    columns:
+      - event_date
+      - sys_from

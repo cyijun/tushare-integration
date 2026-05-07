@@ -1,0 +1,22 @@
+id: 2004
+name: dwd_stock_adj_factor
+comment: 股票复权因子标准层
+builder: raw_versioned
+source:
+  table_name: adj_factor_raw
+  schema_name: stock/quotes/adj_factor
+instrument_type: stock
+instrument_id_expr: "concat('stock:', src.ts_code)"
+source_code_expr: src.ts_code
+exchange_expr: "arrayElement(splitByChar('.', src.ts_code), 2)"
+event_date_expr: src.trade_date
+calendar_date_expr: src.trade_date
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.trade_date)
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_stock_adj_factor_idx
+    columns:
+      - instrument_id
+      - event_date
+      - sys_from

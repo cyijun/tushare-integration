@@ -1,0 +1,22 @@
+id: 2002
+name: dwd_stock_eod_price
+comment: 股票日线行情标准层
+builder: raw_versioned
+source:
+  table_name: daily_raw
+  schema_name: stock/quotes/daily
+instrument_type: stock
+instrument_id_expr: "concat('stock:', src.ts_code)"
+source_code_expr: src.ts_code
+exchange_expr: "arrayElement(splitByChar('.', src.ts_code), 2)"
+event_date_expr: src.trade_date
+calendar_date_expr: src.trade_date
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.trade_date)
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_stock_eod_price_idx
+    columns:
+      - instrument_id
+      - event_date
+      - sys_from

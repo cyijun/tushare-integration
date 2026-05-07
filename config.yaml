@@ -2,7 +2,7 @@
 tushare_url: https://api.tushare.pro
 tushare_point: 10000
 tushare_token: "[REDACTED]"
-tushare_max_concurrent_requests: 100
+tushare_max_concurrent_requests: 600
 
 database:
   # 数据库配置
@@ -25,7 +25,7 @@ dingtalk_webhook: "https://oapi.dingtalk.com/robot/send?access_token=803c03d7a3d
 
 # Scrapy配置
 bot_name: tushare_integration
-concurrent_requests: 1
+concurrent_requests: 4
 concurrent_items: 100
 
 downloader_middlewares:

@@ -610,8 +610,8 @@ ODS_RAW / ODS_LATEST
 建议每个主题域维护独立 SQL：
 
 - `sql/dwd/security_master.sql`
-- `sql/dwd/stock_eod_price_pit.sql`
-- `sql/dwd/stock_financial_indicator_pit.sql`
+- `sql/dwd/stock_eod_price.sql`
+- `sql/dwd/stock_financial_indicator.sql`
 
 执行方式由调度器统一控制，而不是把 DWD 逻辑写回 `tushare-integration` 的 spider。
 
@@ -623,7 +623,7 @@ ODS_RAW / ODS_LATEST
 run_ods_ingestion
   -> check_ods_quality
   -> build_dwd_base
-  -> build_dwd_pit
+  -> build_dwd_standard
   -> build_service_snapshot
 ```
 
@@ -648,8 +648,8 @@ run_ods_ingestion
   - `ods_tushare_xxx_raw`
   - `ods_tushare_xxx_latest`
 - DWD：
-  - `dwd_xxx_pit_tmp`
-  - `dwd_xxx_pit`
+  - `dwd_xxx_tmp`
+  - `dwd_xxx`
 - 服务层：
   - `svc_xxx_snapshot`
 
@@ -659,8 +659,8 @@ run_ods_ingestion
 Step 1: tushare-integration 写入 ods_tushare_*_raw / latest
 Step 2: 调度器识别本批次影响的 trade_date / ann_date
 Step 3: ClickHouse SQL 生成 dwd_*_tmp
-Step 4: 用分区替换写入 dwd_*_pit
-Step 5: 基于 dwd_*_pit 生成 svc_* 快照
+Step 4: 用分区替换写入 dwd_*
+Step 5: 基于 dwd_* 生成 svc_* 快照
 ```
 
 推荐理由：
@@ -840,7 +840,7 @@ Step 5: 基于 dwd_*_pit 生成 svc_* 快照
 
 - `ods_tushare_xxx_raw`
 - `ods_tushare_xxx_latest`
-- `dwd_xxx_pit`
+- `dwd_xxx`
 - `svc_xxx_snapshot`
 
 这样更利于多源扩展和治理。
@@ -870,22 +870,25 @@ Step 5: 基于 dwd_*_pit 生成 svc_* 快照
 - `ods_tushare_*_raw`
 - `ods_tushare_*_latest`
 
-### 层 2：DWD PIT
+### 层 2：DWD 标准层
 
 优先做：
 
 - `dwd_security_master`
 - `dwd_trade_calendar`
-- `dwd_stock_eod_price_pit`
-- `dwd_stock_daily_basic_pit`
-- `dwd_stock_adj_factor_pit`
-- `dwd_stock_financial_indicator_pit`
-- `dwd_stock_income_pit`
-- `dwd_stock_balance_sheet_pit`
-- `dwd_stock_cashflow_pit`
-- `dwd_stock_corporate_action_pit`
-- `dwd_index_eod_price_pit`
-- `dwd_future_eod_price_pit`
+- `dwd_stock_eod_price`
+- `dwd_stock_daily_basic`
+- `dwd_stock_adj_factor`
+- `dwd_stock_financial_indicator`
+- `dwd_stock_income`
+- `dwd_stock_balance_sheet`
+- `dwd_stock_cashflow`
+- `dwd_index_eod_price`
+- `dwd_future_eod_price`
+
+二期再补：
+
+- `dwd_stock_corporate_action`
 
 ### 层 3：SVC / ADS
 
@@ -1134,7 +1137,7 @@ Step 5: 基于 dwd_*_pit 生成 svc_* 快照
 
 1. 回补最近 `N` 日热窗口
 2. 做哈希比对
-3. 如果发现变化，则更新 DWD PIT 版本
+3. 如果发现变化，则更新 DWD 版本
 
 #### 低频兜底链路
 
@@ -1248,7 +1251,7 @@ change_detection:
   - 关键接口是否更新
 - 主键唯一性
   - ODS latest
-  - DWD PIT 当前版本
+  - DWD 当前版本
 - 时效性
   - 收盘后多久完成更新
 - 空值率
@@ -1287,7 +1290,7 @@ change_detection:
 - batch/run 管理增强
 - 原始层空值保真
 
-## 阶段 2：建设核心 DWD PIT 主题
+## 阶段 2：建设核心 DWD 主题
 
 优先顺序建议：
 
@@ -1383,7 +1386,7 @@ PIT 应该建设在：
 2. 给所有落表补齐 `_source/_api_name/_batch_id/_ingest_time/_record_hash`
 3. 取消原始层默认值填充，保留空值
 4. 设计 `dwd_trade_calendar`、`dwd_security_master`
-5. 设计 `dwd_stock_eod_price_pit`、`dwd_stock_daily_basic_pit`
+5. 设计 `dwd_stock_eod_price`、`dwd_stock_daily_basic`
 6. 设计 `available_trade_date` 统一规则
 7. 建立 `svc_backtest_feature_snapshot_daily`
 8. 建立日终批次质量检查和 SLA 监控
