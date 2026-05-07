@@ -18,6 +18,9 @@ from tushare_integration.storage import (
 )
 
 
+TUSHARE_EMPTY_DATA_MESSAGE_FRAGMENTS = ("指定数据不存在",)
+
+
 class TushareSpider(scrapy.Spider):
     name: str
     api_name: str
@@ -70,10 +73,26 @@ class TushareSpider(scrapy.Spider):
         resp = json.loads(response.text)
 
         if resp["code"] != 0:
-            logging.error(f"Request {self.get_api_name()} failed: {resp['msg']}")
-            raise RuntimeError(resp['msg'])
+            msg = resp.get("msg", "")
+            if self.is_empty_data_response(resp):
+                logging.info(
+                    f"Request {self.get_api_name()} returned no data: {msg}, "
+                    f"params: {getattr(response, 'meta', {}).get('params', {})}"
+                )
+                return self.build_empty_item()
+
+            logging.error(f"Request {self.get_api_name()} failed: {msg}")
+            raise RuntimeError(msg)
 
         return TushareIntegrationItem(data=pd.DataFrame(data=resp["data"]["items"], columns=resp["data"]["fields"]))
+
+    @staticmethod
+    def is_empty_data_response(resp: dict) -> bool:
+        msg = str(resp.get("msg", ""))
+        return any(fragment in msg for fragment in TUSHARE_EMPTY_DATA_MESSAGE_FRAGMENTS)
+
+    def build_empty_item(self):
+        return TushareIntegrationItem(data=pd.DataFrame(columns=self.load_fields().split(",")))
 
     def get_db_engine(self):
         return self.db_engine
@@ -221,7 +240,7 @@ class FinancialReportSpider(TushareSpider):
     def get_all_period():
         # 获取所有的period
         periods = []
-        for year in range(1990, datetime.datetime.now().year + 1):
+        for year in range(2010, datetime.datetime.now().year + 1):
             for end_date in [f"{year}0331", f"{year}0630", f"{year}0930", f"{year}1231"]:
                 periods.append(end_date)
         return periods

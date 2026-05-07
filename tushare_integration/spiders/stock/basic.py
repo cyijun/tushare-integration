@@ -105,7 +105,7 @@ class StockNewShareSpider(TushareSpider):
 
     def start_requests(self):
         # 用start_date和end_date筛选，每次拉取一年的数据
-        for year in range(1990, datetime.datetime.now().year + 1, 5):
+        for year in range(2010, datetime.datetime.now().year + 1, 5):
             params = {"start_date": str(year) + "0101", "end_date": str(year + 5) + "1231"}
             yield self.get_scrapy_request(params)
 

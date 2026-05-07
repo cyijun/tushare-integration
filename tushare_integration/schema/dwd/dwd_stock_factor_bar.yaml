@@ -1,0 +1,96 @@
+id: 2012
+name: dwd_stock_factor_bar
+comment: 股票因子计算基础行情标准层
+builder: stock_factor_bar
+schema:
+  comment: 股票因子计算基础行情标准层
+  primary_key: []
+  partition_key:
+    - toYear(available_trade_date)
+  indexes:
+    - name: dwd_stock_factor_bar_idx
+      columns:
+        - instrument_id
+        - event_date
+        - sys_from
+  columns:
+    - name: instrument_id
+      data_type: str
+      length: 64
+      comment: 统一证券ID
+    - name: instrument_type
+      data_type: str
+      length: 32
+      comment: 证券类型
+    - name: exchange
+      data_type: str
+      length: 32
+      comment: 交易所
+    - name: source_code
+      data_type: str
+      length: 64
+      comment: 源侧证券代码
+    - name: event_date
+      data_type: date
+      comment: 业务归属日期
+    - name: available_trade_date
+      data_type: date
+      comment: 最早可用交易日
+    - name: open
+      data_type: float
+      nullable: true
+      comment: 开盘价
+    - name: high
+      data_type: float
+      nullable: true
+      comment: 最高价
+    - name: low
+      data_type: float
+      nullable: true
+      comment: 最低价
+    - name: close
+      data_type: float
+      nullable: true
+      comment: 收盘价
+    - name: volume
+      data_type: float
+      nullable: true
+      comment: 成交量
+    - name: amount
+      data_type: float
+      nullable: true
+      comment: 成交额
+    - name: turnover
+      data_type: float
+      nullable: true
+      comment: 换手率
+    - name: turnover_free_float
+      data_type: float
+      nullable: true
+      comment: 自由流通股换手率
+    - name: volume_ratio
+      data_type: float
+      nullable: true
+      comment: 量比
+    - name: sys_from
+      data_type: datetime
+      comment: 版本开始时间
+    - name: sys_to
+      data_type: datetime
+      comment: 版本结束时间
+    - name: source
+      data_type: str
+      length: 32
+      comment: 来源系统
+    - name: source_table
+      data_type: str
+      length: 128
+      comment: 来源表
+    - name: source_batch_id
+      data_type: str
+      length: 160
+      comment: 来源批次ID
+    - name: source_record_hash
+      data_type: str
+      length: 32
+      comment: 来源记录哈希
