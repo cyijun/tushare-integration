@@ -1,0 +1,311 @@
+id: 3001
+name: dws_stock_factor_wide
+comment: 股票因子计算宽表汇总层
+builder: stock_factor_wide
+schema:
+  comment: 股票因子计算宽表汇总层
+  primary_key: []
+  partition_key:
+    - toYear(available_trade_date)
+  indexes:
+    - name: dws_stock_factor_wide_idx
+      columns:
+        - instrument_id
+        - event_date
+  columns:
+    - name: instrument_id
+      data_type: str
+      length: 64
+      comment: 统一证券ID
+    - name: instrument_type
+      data_type: str
+      length: 32
+      comment: 证券类型
+    - name: exchange
+      data_type: str
+      length: 32
+      comment: 交易所
+    - name: source_code
+      data_type: str
+      length: 64
+      comment: 源侧证券代码
+    - name: event_date
+      data_type: date
+      comment: 业务归属日期
+    - name: trade_date
+      data_type: date
+      comment: 交易日期
+    - name: available_trade_date
+      data_type: date
+      comment: 最早可用交易日
+    - name: open
+      data_type: float
+      nullable: true
+      comment: 开盘价
+    - name: high
+      data_type: float
+      nullable: true
+      comment: 最高价
+    - name: low
+      data_type: float
+      nullable: true
+      comment: 最低价
+    - name: close
+      data_type: float
+      nullable: true
+      comment: 收盘价
+    - name: pre_close
+      data_type: float
+      nullable: true
+      comment: 昨收价
+    - name: pct_chg
+      data_type: float
+      nullable: true
+      comment: 涨跌幅
+    - name: vol
+      data_type: float
+      nullable: true
+      comment: 成交量
+    - name: amount
+      data_type: float
+      nullable: true
+      comment: 成交额
+    - name: buying
+      data_type: float
+      nullable: true
+      comment: 外盘
+    - name: selling
+      data_type: float
+      nullable: true
+      comment: 内盘
+    - name: vol_ratio
+      data_type: float
+      nullable: true
+      comment: 量比
+    - name: turn_over
+      data_type: float
+      nullable: true
+      comment: 换手率
+    - name: swing
+      data_type: float
+      nullable: true
+      comment: 振幅
+    - name: avg_price
+      data_type: float
+      nullable: true
+      comment: 均价
+    - name: strength
+      data_type: float
+      nullable: true
+      comment: 强弱度
+    - name: activity
+      data_type: float
+      nullable: true
+      comment: 活跃度
+    - name: avg_turnover
+      data_type: float
+      nullable: true
+      comment: 笔换手
+    - name: attack
+      data_type: float
+      nullable: true
+      comment: 攻击波
+    - name: pe_ttm
+      data_type: float
+      nullable: true
+      comment: 市盈率TTM
+    - name: pb
+      data_type: float
+      nullable: true
+      comment: 市净率
+    - name: ps_ttm
+      data_type: float
+      nullable: true
+      comment: 市销率TTM
+    - name: dv_ttm
+      data_type: float
+      nullable: true
+      comment: 股息率TTM
+    - name: turnover_rate_f
+      data_type: float
+      nullable: true
+      comment: 自由流通股换手率
+    - name: volume_ratio_db
+      data_type: float
+      nullable: true
+      comment: 量比每日指标
+    - name: circ_mv
+      data_type: float
+      nullable: true
+      comment: 流通市值
+    - name: total_mv
+      data_type: float
+      nullable: true
+      comment: 总市值
+    - name: total_share
+      data_type: float
+      nullable: true
+      comment: 总股本
+    - name: float_share
+      data_type: float
+      nullable: true
+      comment: 流通股本
+    - name: free_share
+      data_type: float
+      nullable: true
+      comment: 自由流通股本
+    - name: roe
+      data_type: float
+      nullable: true
+      comment: 净资产收益率
+    - name: roa
+      data_type: float
+      nullable: true
+      comment: 总资产报酬率
+    - name: roic
+      data_type: float
+      nullable: true
+      comment: 投入资本回报率
+    - name: grossprofit_margin
+      data_type: float
+      nullable: true
+      comment: 销售毛利率
+    - name: netprofit_margin
+      data_type: float
+      nullable: true
+      comment: 销售净利率
+    - name: or_yoy
+      data_type: float
+      nullable: true
+      comment: 营业收入同比增长率
+    - name: netprofit_yoy
+      data_type: float
+      nullable: true
+      comment: 归母净利润同比增长率
+    - name: op_yoy
+      data_type: float
+      nullable: true
+      comment: 营业利润同比增长率
+    - name: basic_eps_yoy
+      data_type: float
+      nullable: true
+      comment: 基本每股收益同比增长率
+    - name: q_roe
+      data_type: float
+      nullable: true
+      comment: 单季度净资产收益率
+    - name: q_gsprofit_margin
+      data_type: float
+      nullable: true
+      comment: 单季度销售毛利率
+    - name: q_netprofit_yoy
+      data_type: float
+      nullable: true
+      comment: 单季度归母净利润同比增长率
+    - name: q_sales_yoy
+      data_type: float
+      nullable: true
+      comment: 单季度营业收入同比增长率
+    - name: ocf_to_or
+      data_type: float
+      nullable: true
+      comment: 经营现金流营业收入比
+    - name: ocf_to_profit
+      data_type: float
+      nullable: true
+      comment: 经营现金流营业利润比
+    - name: debt_to_assets
+      data_type: float
+      nullable: true
+      comment: 资产负债率
+    - name: current_ratio
+      data_type: float
+      nullable: true
+      comment: 流动比率
+    - name: eps
+      data_type: float
+      nullable: true
+      comment: 基本每股收益
+    - name: bps
+      data_type: float
+      nullable: true
+      comment: 每股净资产
+    - name: ocfps
+      data_type: float
+      nullable: true
+      comment: 每股经营现金流
+    - name: rd_exp
+      data_type: float
+      nullable: true
+      comment: 研发费用
+    - name: hk_hold_vol
+      data_type: float
+      nullable: true
+      comment: 北向持股数量
+    - name: hk_hold_ratio
+      data_type: float
+      nullable: true
+      comment: 北向持股占比
+    - name: rzye
+      data_type: float
+      nullable: true
+      comment: 融资余额
+    - name: rzmre
+      data_type: float
+      nullable: true
+      comment: 融资买入额
+    - name: rzche
+      data_type: float
+      nullable: true
+      comment: 融资偿还额
+    - name: rqye
+      data_type: float
+      nullable: true
+      comment: 融券余额
+    - name: rqyl
+      data_type: float
+      nullable: true
+      comment: 融券余量
+    - name: rqmcl
+      data_type: float
+      nullable: true
+      comment: 融券卖出量
+    - name: winner_rate
+      data_type: float
+      nullable: true
+      comment: 获利比例
+    - name: cost_5pct
+      data_type: float
+      nullable: true
+      comment: 5分位成本
+    - name: cost_50pct
+      data_type: float
+      nullable: true
+      comment: 50分位成本
+    - name: cost_95pct
+      data_type: float
+      nullable: true
+      comment: 95分位成本
+    - name: weight_avg_cost
+      data_type: float
+      nullable: true
+      comment: 加权平均成本
+    - name: build_time
+      data_type: datetime
+      comment: 汇总构建时间
+    - name: source
+      data_type: str
+      length: 32
+      comment: 来源系统
+    - name: source_table
+      data_type: str
+      length: 255
+      comment: 来源表
+    - name: source_batch_id
+      data_type: str
+      length: 512
+      comment: 来源批次ID
+    - name: source_record_hash
+      data_type: str
+      length: 32
+      comment: 来源记录哈希

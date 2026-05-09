@@ -1,0 +1,31 @@
+id: 2014
+name: dwd_stock_northbound_holding
+comment: 股票北向持股标准层
+builder: raw_versioned
+source:
+  table_name: hk_hold_raw
+  schema_name: stock/special/hk_hold
+source_column_excludes:
+  - exchange
+instrument_type: stock
+instrument_id_expr: "concat('stock:', src.ts_code)"
+source_code_expr: src.ts_code
+exchange_expr: "arrayElement(splitByChar('.', assumeNotNull(src.ts_code)), 2)"
+event_date_expr: src.trade_date
+calendar_date_expr: src.trade_date
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.trade_date)
+extra_columns:
+  - name: connect_channel
+    data_type: str
+    length: 32
+    nullable: true
+    comment: 沪深股通通道
+    expr: src.exchange
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_stock_northbound_holding_idx
+    columns:
+      - instrument_id
+      - event_date
+      - sys_from

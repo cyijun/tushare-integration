@@ -10,11 +10,13 @@ LOCK_FILE="${LOCK_FILE:-/tmp/tushare-daily-stock-jobs.lock}"
 IMAGE_BASIC="${IMAGE_BASIC:-tushare-integration:0.0.1}"
 IMAGE_DEFAULT="${IMAGE_DEFAULT:-tushare-integration:0.0.4}"
 DWD_SYNC_IMAGE="${DWD_SYNC_IMAGE:-$IMAGE_DEFAULT}"
+DWS_SYNC_IMAGE="${DWS_SYNC_IMAGE:-$DWD_SYNC_IMAGE}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 USE_SUDO="${USE_SUDO:-auto}"
 CONTINUE_ON_ERROR="${CONTINUE_ON_ERROR:-0}"
 NORMAL_JOBS_HAD_FAILURE=0
 DWD_SYNC_HAD_FAILURE=0
+DWS_SYNC_HAD_FAILURE=0
 
 mkdir -p "$LOG_DIR"
 RUN_LOG="${RUN_LOG:-$LOG_DIR/daily-stock-jobs-$(date +%Y%m%d).log}"
@@ -172,6 +174,49 @@ run_dwd_sync() {
   echo "[$(date '+%F %T')] DWD sync completed: $table"
 }
 
+run_dws_sync() {
+  local container="$1"
+  local image="$2"
+  local table="$3"
+  local container_id
+  local exit_code
+  local logs_pid
+
+  echo "[$(date '+%F %T')] Starting DWS sync $table with $image as $container"
+  docker_cmd rm -f "$container" >/dev/null 2>&1 || true
+
+  container_id="$(
+    docker_cmd run -d \
+      --name "$container" \
+      --net=host \
+      -v "$CONFIG_FILE:/code/app/config.yaml:ro" \
+      "$image" \
+      python main.py dws sync "$table"
+  )"
+  echo "[$(date '+%F %T')] Container started: $container_id"
+  ACTIVE_CONTAINER="$container"
+
+  docker_cmd logs -f "$container" &
+  logs_pid="$!"
+  ACTIVE_LOGS_PID="$logs_pid"
+
+  exit_code="$(docker_cmd wait "$container")"
+  wait "$logs_pid" || true
+  ACTIVE_LOGS_PID=""
+  ACTIVE_CONTAINER=""
+
+  if [[ "$exit_code" != "0" ]]; then
+    echo "[$(date '+%F %T')] DWS sync failed: $table exited with code $exit_code"
+    DWS_SYNC_HAD_FAILURE=1
+    if [[ "$CONTINUE_ON_ERROR" == "1" ]]; then
+      return 0
+    fi
+    return "$exit_code"
+  fi
+
+  echo "[$(date '+%F %T')] DWS sync completed: $table"
+}
+
 main() {
   require_file "$JOBS_FILE"
   require_file "$CONFIG_FILE"
@@ -185,11 +230,19 @@ main() {
     "tushare-job-special|$IMAGE_DEFAULT|stock/special"
   )
 
-  # Ordered by DWD dependencies; factor bars read the first two tables.
+  # Ordered by DWD dependencies. DWD tasks stay atomic and source-normalized.
   local dwd_sync_tasks=(
     "tushare-dwd-sync-stock-eod-price|$DWD_SYNC_IMAGE|dwd_stock_eod_price"
     "tushare-dwd-sync-stock-daily-basic|$DWD_SYNC_IMAGE|dwd_stock_daily_basic"
-    "tushare-dwd-sync-stock-factor-bar|$DWD_SYNC_IMAGE|dwd_stock_factor_bar"
+    "tushare-dwd-sync-stock-eod-quote-metrics|$DWD_SYNC_IMAGE|dwd_stock_eod_quote_metrics"
+    "tushare-dwd-sync-stock-financial-indicator|$DWD_SYNC_IMAGE|dwd_stock_financial_indicator"
+    "tushare-dwd-sync-stock-northbound-holding|$DWD_SYNC_IMAGE|dwd_stock_northbound_holding"
+    "tushare-dwd-sync-stock-margin-trading|$DWD_SYNC_IMAGE|dwd_stock_margin_trading"
+    "tushare-dwd-sync-stock-chip-distribution|$DWD_SYNC_IMAGE|dwd_stock_chip_distribution"
+  )
+
+  local dws_sync_tasks=(
+    "tushare-dws-sync-stock-factor-wide|$DWS_SYNC_IMAGE|dws_stock_factor_wide"
   )
 
   echo "[$(date '+%F %T')] Daily stock jobs started. Log: $RUN_LOG"
@@ -222,7 +275,19 @@ main() {
     return 0
   fi
 
-  echo "[$(date '+%F %T')] Daily stock jobs and DWD sync tasks completed."
+  echo "[$(date '+%F %T')] DWS sync tasks started."
+
+  for entry in "${dws_sync_tasks[@]}"; do
+    IFS="|" read -r container image table <<< "$entry"
+    run_dws_sync "$container" "$image" "$table"
+  done
+
+  if [[ "$DWS_SYNC_HAD_FAILURE" != "0" ]]; then
+    echo "[$(date '+%F %T')] Daily stock jobs completed; DWS sync tasks completed with failures."
+    return 0
+  fi
+
+  echo "[$(date '+%F %T')] Daily stock jobs, DWD sync tasks, and DWS sync tasks completed."
 }
 
 main "$@"

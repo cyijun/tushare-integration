@@ -30,7 +30,7 @@
 20. dwd_stock_cashflow｜股票现金流量表标准层｜1,865,759 行
 21. dwd_stock_daily_basic｜股票每日指标标准层｜17,630,279 行
 22. dwd_stock_eod_price｜股票日线行情标准层｜17,721,758 行
-23. dwd_stock_factor_bar｜股票因子计算基础行情标准层｜17,629,192 行
+23. dws_stock_factor_wide｜股票因子计算宽表汇总层｜待同步
 24. dwd_stock_financial_indicator｜股票财务指标标准层｜664,113 行
 25. dwd_stock_income｜股票利润表标准层｜2,144,627 行
 26. dwd_trade_calendar｜交易日历标准层｜72,609 行
@@ -1102,33 +1102,13 @@
     23. source_record_hash：来源记录哈希
 
 ------------------------------------------------------------
-23. dwd_stock_factor_bar
-表说明：股票因子计算基础行情标准层
-数据量：17,629,192 行
-字段数量：21 个
-结构来源：dwd/dwd_stock_factor_bar.yaml
+23. dws_stock_factor_wide
+表说明：股票因子计算宽表汇总层
+数据量：待同步
+字段数量：见结构文件
+结构来源：dws/dws_stock_factor_wide.yaml
 字段清单：
-    01. instrument_id：统一证券ID
-    02. instrument_type：证券类型
-    03. exchange：交易所
-    04. source_code：源侧证券代码
-    05. event_date：业务归属日期
-    06. available_trade_date：最早可用交易日
-    07. open：开盘价
-    08. high：最高价
-    09. low：最低价
-    10. close：收盘价
-    11. volume：成交量
-    12. amount：成交额
-    13. turnover：换手率
-    14. turnover_free_float：自由流通股换手率
-    15. volume_ratio：量比
-    16. sys_from：版本开始时间
-    17. sys_to：版本结束时间
-    18. source：来源系统
-    19. source_table：来源表
-    20. source_batch_id：来源批次ID
-    21. source_record_hash：来源记录哈希
+    DWS宽表由PIT合规的DWD原子表汇总生成，重新同步后可刷新本报告。
 
 ------------------------------------------------------------
 24. dwd_stock_financial_indicator

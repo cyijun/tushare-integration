@@ -14,7 +14,6 @@ DWD_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema" / "dwd"
 ODS_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema"
 FAR_FUTURE_TS_SQL = "toDateTime64('9999-12-31 00:00:00', 3)"
 CALENDAR_SOURCE_TABLE = "trade_cal"
-STOCK_FACTOR_BAR_SOURCES = ["dwd_stock_eod_price", "dwd_stock_daily_basic"]
 
 
 COMMON_DWD_COLUMNS = [
@@ -102,13 +101,13 @@ class DWDManager:
             schema["primary_key"] = []
             return schema
 
-        if spec.get("builder") == "stock_factor_bar":
-            schema = deepcopy(spec["schema"])
-            schema["primary_key"] = []
-            return schema
-
         source_schema = self.load_source_schema(spec["source"]["schema_name"])
-        source_columns = [_nullable_copy(column) for column in source_schema["columns"]]
+        source_column_excludes = set(spec.get("source_column_excludes", []))
+        source_columns = [
+            _nullable_copy(column)
+            for column in source_schema["columns"]
+            if column["name"] not in source_column_excludes
+        ]
         common_columns = self._build_common_columns(spec)
 
         return {
@@ -142,7 +141,12 @@ calendar_map AS (
         if not business_key:
             raise ValueError(f"{spec['name']} requires business_key or source primary_key")
 
-        source_columns = [column["name"] for column in source_schema["columns"]]
+        source_column_excludes = set(spec.get("source_column_excludes", []))
+        source_columns = [
+            column["name"]
+            for column in source_schema["columns"]
+            if column["name"] not in source_column_excludes
+        ]
         business_key_partition = ", ".join([f"src.{_quote_column(column)}" for column in business_key])
         business_key_not_null = " AND ".join([f"src.{_quote_column(column)} IS NOT NULL" for column in business_key])
         source_column_select = ",\n    ".join([f"src.{_quote_column(column)}" for column in source_columns])
@@ -384,56 +388,16 @@ SELECT
 FROM versioned
 """
 
-    def _render_stock_factor_bar_sync_sql(self, spec: dict[str, Any], target_table_name: str) -> str:
-        db_name = self.settings.database.db_name
-        return f"""
-INSERT INTO {db_name}.{target_table_name}
-SELECT
-    price.instrument_id AS instrument_id,
-    price.instrument_type AS instrument_type,
-    price.exchange AS exchange,
-    price.source_code AS source_code,
-    price.event_date AS event_date,
-    greatest(price.available_trade_date, daily_basic.available_trade_date) AS available_trade_date,
-    price.open AS open,
-    price.high AS high,
-    price.low AS low,
-    price.close AS close,
-    price.vol AS volume,
-    price.amount AS amount,
-    daily_basic.turnover_rate AS turnover,
-    daily_basic.turnover_rate_f AS turnover_free_float,
-    daily_basic.volume_ratio AS volume_ratio,
-    greatest(price.sys_from, daily_basic.sys_from) AS sys_from,
-    least(price.sys_to, daily_basic.sys_to) AS sys_to,
-    'derived' AS source,
-    '{",".join(STOCK_FACTOR_BAR_SOURCES)}' AS source_table,
-    concat(coalesce(price.source_batch_id, ''), '|', coalesce(daily_basic.source_batch_id, '')) AS source_batch_id,
-    lower(hex(MD5(concat(price.source_record_hash, '|', daily_basic.source_record_hash)))) AS source_record_hash
-FROM {db_name}.dwd_stock_eod_price price
-INNER JOIN {db_name}.dwd_stock_daily_basic daily_basic
-    ON daily_basic.instrument_id = price.instrument_id
-   AND daily_basic.event_date = price.event_date
-   AND price.sys_from < daily_basic.sys_to
-   AND daily_basic.sys_from < price.sys_to
-WHERE least(price.sys_to, daily_basic.sys_to) > greatest(price.sys_from, daily_basic.sys_from)
-"""
-
     def render_sync_sql(self, table_name: str, target_table_name: str | None = None) -> str:
         spec = self.load_spec(table_name)
         target_table_name = target_table_name or spec["name"]
         if spec.get("builder", "raw_versioned") == "security_master":
             return self._render_security_master_sync_sql(spec, target_table_name)
-        if spec.get("builder") == "stock_factor_bar":
-            return self._render_stock_factor_bar_sync_sql(spec, target_table_name)
         return self._render_generic_sync_sql(spec, target_table_name)
 
     def get_required_source_tables(self, spec: dict[str, Any]) -> list[str]:
         if spec.get("builder", "raw_versioned") == "security_master":
             return ["stock_basic_raw", "index_basic_raw", "fut_basic_raw", CALENDAR_SOURCE_TABLE]
-
-        if spec.get("builder") == "stock_factor_bar":
-            return STOCK_FACTOR_BAR_SOURCES
 
         required_tables = [spec["source"]["table_name"]]
         if spec.get("calendar_date_expr"):
