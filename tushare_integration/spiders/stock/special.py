@@ -19,7 +19,7 @@ class CyqPerfSpider(DailySpider):
 class CyqChipsSpider(TushareSpider):
     name = "stock/special/cyq_chips"
     api_name = "cyq_chips"
-    custom_settings = {"TABLE_NAME": "cyq_chips", "BASIC_TABLE": "stock_basic", "MIN_CAL_DATE": "2010-01-01"}
+    custom_settings = {"TABLE_NAME": "cyq_chips", "BASIC_TABLE": "stock_basic", "MIN_CAL_DATE": "2018-01-02"}
 
     def start_requests(self):
         conn = self.get_db_engine()

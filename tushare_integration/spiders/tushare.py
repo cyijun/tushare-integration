@@ -18,7 +18,14 @@ from tushare_integration.storage import (
 )
 
 
-TUSHARE_EMPTY_DATA_MESSAGE_FRAGMENTS = ("指定数据不存在",)
+TUSHARE_EMPTY_DATA_MESSAGE_FRAGMENTS = (
+    "指定数据不存在",
+    "查询的数据为空",
+    "数据为空",
+    "没有数据",
+    "暂无数据",
+    "无数据",
+)
 
 
 class TushareSpider(scrapy.Spider):
@@ -84,7 +91,11 @@ class TushareSpider(scrapy.Spider):
             logging.error(f"Request {self.get_api_name()} failed: {msg}")
             raise RuntimeError(msg)
 
-        return TushareIntegrationItem(data=pd.DataFrame(data=resp["data"]["items"], columns=resp["data"]["fields"]))
+        data = resp.get("data") or {}
+        fields = data.get("fields") or self.load_fields().split(",")
+        items = data.get("items") or []
+
+        return TushareIntegrationItem(data=pd.DataFrame(data=items, columns=fields))
 
     @staticmethod
     def is_empty_data_response(resp: dict) -> bool:

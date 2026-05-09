@@ -43,10 +43,62 @@ class CrawlManager(object):
             spiders = [s for s in spiders if re.fullmatch(spider, s)]
         return spiders
 
-    def append_signal(self, signal, sender=None, item=None, response=None, spider=None):
-        if not any([s['signal'] == signal and s['spider'] == spider for s in self.signals]):
+    @staticmethod
+    def get_signal_name(scrapy_signal):
+        if scrapy_signal == scrapy.signals.item_error:
+            return "item_error"
+        if scrapy_signal == scrapy.signals.spider_error:
+            return "spider_error"
+        return str(scrapy_signal)
+
+    @staticmethod
+    def get_failure_message(failure):
+        if failure is None:
+            return ""
+        if getattr(failure, "value", None) is not None:
+            return repr(failure.value)
+        if hasattr(failure, "getErrorMessage"):
+            return failure.getErrorMessage()
+        return str(failure)
+
+    @classmethod
+    def describe_signal(cls, scrapy_signal):
+        response = scrapy_signal.get("response")
+        response_url = getattr(response, "url", "")
+        response_params = getattr(response, "meta", {}).get("params", {}) if response else {}
+        spider = scrapy_signal.get("spider")
+        spider_name = getattr(spider, "name", "")
+        failure_message = cls.get_failure_message(scrapy_signal.get("failure"))
+
+        parts = [f"signal={cls.get_signal_name(scrapy_signal.get('signal'))}"]
+        if spider_name:
+            parts.append(f"spider={spider_name}")
+        if response_url:
+            parts.append(f"response={response_url}")
+        if response_params:
+            parts.append(f"params={response_params}")
+        if failure_message:
+            parts.append(f"error={failure_message}")
+        return " ".join(parts)
+
+    def append_signal(self, signal, sender=None, item=None, response=None, spider=None, failure=None, **kwargs):
+        if not any(
+            [
+                s['signal'] == signal
+                and s['spider'] == spider
+                and self.get_failure_message(s.get('failure')) == self.get_failure_message(failure)
+                for s in self.signals
+            ]
+        ):
             self.signals.append(
-                {'signal': signal, 'sender': sender, 'item': item, 'response': response, 'spider': spider}
+                {
+                    'signal': signal,
+                    'sender': sender,
+                    'item': item,
+                    'response': response,
+                    'spider': spider,
+                    'failure': failure,
+                }
             )
 
     def get_settings(self):
@@ -122,7 +174,8 @@ class CrawlManager(object):
 
     def raise_for_signal(self):
         if self.signals:
-            raise Exception(f"Signals: {self.signals}")
+            signal_details = "\n".join([self.describe_signal(scrapy_signal) for scrapy_signal in self.signals])
+            raise RuntimeError(f"Scrapy signals captured:\n{signal_details}")
 
     def get_report_content(self):
         content = f"批次ID：{self.batch_id}\n"
@@ -139,9 +192,9 @@ class CrawlManager(object):
             content += "警告信息：\n"
             for scrapy_signal in self.signals:
                 if scrapy_signal['signal'] == scrapy.signals.item_error:
-                    content += f"爬虫名称:{scrapy_signal['spider'].name} 警告信息:item error\n"
+                    content += f"爬虫名称:{scrapy_signal['spider'].name} 警告信息:{self.describe_signal(scrapy_signal)}\n"
                 elif scrapy_signal['signal'] == scrapy.signals.spider_error:
-                    content += f"爬虫名称:{scrapy_signal['spider'].name} 警告信息:spider error\n"
+                    content += f"爬虫名称:{scrapy_signal['spider'].name} 警告信息:{self.describe_signal(scrapy_signal)}\n"
         return content
 
     def report(self):
