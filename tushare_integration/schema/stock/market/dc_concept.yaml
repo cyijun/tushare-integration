@@ -1,0 +1,71 @@
+id: 4024
+api_name: dc_concept
+name: dc_concept
+comment: 题材数据（东方财富）
+dependencies:
+  - stock/basic/trade_cal
+primary_key:
+  - theme_code
+  - trade_date
+indexes: []
+columns:
+  - name: theme_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 题材code
+  - name: trade_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 交易日期
+  - name: name
+    data_type: str
+    length: 255
+    default: ""
+    comment: 名称
+  - name: pct_change
+    data_type: str
+    length: 64
+    default: ""
+    comment: 涨跌幅
+  - name: hot
+    data_type: str
+    length: 64
+    default: ""
+    comment: 热度
+  - name: sort
+    data_type: str
+    length: 64
+    default: ""
+    comment: 排名
+  - name: strength
+    data_type: str
+    length: 64
+    default: ""
+    comment: 强度
+  - name: z_t_num
+    data_type: str
+    length: 64
+    default: ""
+    comment: 涨停数量
+  - name: main_change
+    data_type: str
+    length: 64
+    default: ""
+    comment: 主力净流入
+  - name: lead_stock
+    data_type: str
+    length: 255
+    default: ""
+    comment: 领涨股票
+  - name: lead_stock_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 领涨股票code
+  - name: lead_stock_pct_change
+    data_type: str
+    length: 64
+    default: ""
+    comment: 领涨股票涨跌幅

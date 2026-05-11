@@ -1,0 +1,201 @@
+id: 4023
+api_name: tdx_daily
+name: tdx_daily
+comment: 通达信板块行情
+dependencies:
+  - stock/basic/trade_cal
+primary_key:
+  - ts_code
+  - trade_date
+indexes: []
+columns:
+  - name: ts_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 板块代码
+  - name: trade_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 交易日期
+  - name: close
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 收盘点位
+  - name: open
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 开盘点位
+  - name: high
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 最高点位
+  - name: low
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 最低点位
+  - name: pre_close
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 昨日收盘点
+  - name: change
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 涨跌点位
+  - name: pct_change
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 涨跌幅
+  - name: vol
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 成交量
+  - name: amount
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 成交额
+  - name: rise
+    data_type: str
+    length: 64
+    default: ""
+    comment: 收盘涨速
+  - name: vol_ratio
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 量比
+  - name: turnover_rate
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 换手
+  - name: swing
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 振幅
+  - name: up_num
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 上涨家数
+  - name: down_num
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 下跌家数
+  - name: limit_up_num
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 涨停家数
+  - name: limit_down_num
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 跌停家数
+  - name: lu_days
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 连涨天数
+  - name: 3day
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 3日涨幅
+  - name: 5day
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 5日涨幅
+  - name: 10day
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 10日涨幅
+  - name: 20day
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 20日涨幅
+  - name: 60day
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 60日涨幅
+  - name: mtd
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 月初至今
+  - name: ytd
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 年初至今
+  - name: 1year
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 一年涨幅
+  - name: pe
+    data_type: str
+    length: 64
+    default: ""
+    comment: 市盈率
+  - name: pb
+    data_type: str
+    length: 64
+    default: ""
+    comment: 市净率
+  - name: float_mv
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 流通市值
+  - name: ab_total_mv
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: AB股总市值
+  - name: float_share
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 流通股
+  - name: total_share
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 总股本
+  - name: bm_buy_net
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 主买净额
+  - name: bm_buy_ratio
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 主买占比
+  - name: bm_net
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 主力净额
+  - name: bm_ratio
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 主力占比

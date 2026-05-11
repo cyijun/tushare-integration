@@ -1,0 +1,33 @@
+id: 4022
+api_name: tdx_member
+name: tdx_member
+comment: 通达信板块成分
+dependencies:
+  - stock/market/tdx_index
+  - stock/basic/trade_cal
+primary_key:
+  - ts_code
+  - trade_date
+  - con_code
+indexes: []
+columns:
+  - name: ts_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 板块代码
+  - name: trade_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 交易日期
+  - name: con_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 成分股票代码
+  - name: con_name
+    data_type: str
+    length: 255
+    default: ""
+    comment: 成分股票名称

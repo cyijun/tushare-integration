@@ -1,0 +1,30 @@
+id: 4004
+api_name: bse_mapping
+name: bse_mapping
+comment: 北交所新旧代码对照
+dependencies: []
+primary_key:
+  - o_code
+  - n_code
+indexes: []
+columns:
+  - name: name
+    data_type: str
+    length: 255
+    default: ""
+    comment: 股票名称
+  - name: o_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 原代码
+  - name: n_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 新代码
+  - name: list_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 上市日期

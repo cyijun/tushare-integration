@@ -6,7 +6,7 @@ from typing import Any
 import pandas as pd
 
 from tushare_integration.items import TushareIntegrationItem
-from tushare_integration.spiders.tushare import DailySpider, TushareSpider
+from tushare_integration.spiders.tushare import DailySpider, TSCodeSpider, TushareSpider
 
 
 class StockDailySpider(DailySpider):
@@ -142,6 +142,12 @@ class StockWeeklyMonthlySpider(StockWeeklySpider):
             yield self.get_scrapy_request(params={"trade_date": trade_date.strftime("%Y%m%d"), "freq": freq})
 
 
+class StkWeekMonthAdjSpider(StockWeeklyMonthlySpider):
+    name = "stock/quotes/stk_week_month_adj"
+    api_name = "stk_week_month_adj"
+    custom_settings = {"TABLE_NAME": "stk_week_month_adj"}
+
+
 class AdjFactorSpider(DailySpider):
     name = "stock/quotes/adj_factor"
     custom_settings = {"TABLE_NAME": "adj_factor"}
@@ -177,12 +183,59 @@ class GGTDailySpider(DailySpider):
     custom_settings = {"TABLE_NAME": "ggt_daily", "MIN_CAL_DATE": "2014-11-17"}
 
 
+class GGTMonthlySpider(TushareSpider):
+    name = "stock/quotes/ggt_monthly"
+    api_name = "ggt_monthly"
+    custom_settings = {"TABLE_NAME": "ggt_monthly"}
+
+    def start_requests(self):
+        today = datetime.date.today()
+        yield self.get_scrapy_request(params={"start_month": "201411", "end_month": today.strftime("%Y%m")})
+
+
 class BakDailySpider(DailySpider):
     name = "stock/quotes/bak_daily"
     custom_settings = {"TABLE_NAME": "bak_daily", 'MIN_CAL_DATE': '2017-06-14'}
 
 
-# 港股通每月成交统计数据只更新到2020年底，在这里不开发策略
+class StkAuctionOSpider(DailySpider):
+    name = "stock/quotes/stk_auction_o"
+    api_name = "stk_auction_o"
+    custom_settings = {"TABLE_NAME": "stk_auction_o"}
+
+
+class StkAuctionCSpider(DailySpider):
+    name = "stock/quotes/stk_auction_c"
+    api_name = "stk_auction_c"
+    custom_settings = {"TABLE_NAME": "stk_auction_c"}
+
+
+class StkNineTurnSpider(TSCodeSpider):
+    name = "stock/quotes/stk_nineturn"
+    api_name = "stk_nineturn"
+    custom_settings = {"TABLE_NAME": "stk_nineturn", "BASIC_TABLE": "stock_basic"}
+
+    def start_requests(self):
+        table_name = self.custom_settings.get('BASIC_TABLE')
+        conn = self.get_db_engine()
+        db_name = self.spider_settings.database.db_name
+
+        ts_codes = conn.query_df(f"SELECT ts_code FROM {db_name}.{table_name}")
+
+        for ts_code in ts_codes['ts_code']:
+            yield self.get_scrapy_request(params={"ts_code": ts_code, "freq": "daily"})
+
+
+class StkAHComparisonSpider(DailySpider):
+    name = "stock/quotes/stk_ah_comparison"
+    api_name = "stk_ah_comparison"
+    custom_settings = {"TABLE_NAME": "stk_ah_comparison", "MIN_CAL_DATE": "2025-08-12"}
+
+
+class StkAuctionSpider(DailySpider):
+    name = "stock/quotes/stk_auction"
+    api_name = "stk_auction"
+    custom_settings = {"TABLE_NAME": "stk_auction"}
 
 
 # noinspection SqlNoDataSourceInspection

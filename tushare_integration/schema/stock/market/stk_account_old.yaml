@@ -1,0 +1,54 @@
+id: 4011
+api_name: stk_account_old
+name: stk_account_old
+comment: 股票开户数据（旧）
+dependencies: []
+primary_key:
+  - date
+indexes: []
+columns:
+  - name: date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 统计周期
+  - name: new_sh
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 本周新增（上海）
+  - name: new_sz
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 本周新增（深圳）
+  - name: active_sh
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 期末有效账户（上海）
+  - name: active_sz
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 期末有效账户（深圳）
+  - name: total_sh
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 期末账户数（上海）
+  - name: total_sz
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 期末账户数（深圳）
+  - name: trade_sh
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 参与交易账户数（上海）
+  - name: trade_sz
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 参与交易账户数（深圳）

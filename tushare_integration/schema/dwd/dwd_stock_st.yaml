@@ -1,0 +1,21 @@
+id: 2017
+name: dwd_stock_st
+comment: 股票ST状态标准层
+builder: raw_versioned
+source:
+  table_name: stock_st_raw
+  schema_name: stock/basic/stock_st
+instrument_type: stock
+instrument_id_expr: "concat('stock:', src.ts_code)"
+source_code_expr: src.ts_code
+exchange_expr: "arrayElement(splitByChar('.', assumeNotNull(src.ts_code)), 2)"
+event_date_expr: src.trade_date
+available_trade_date_expr: src.trade_date
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_stock_st_idx
+    columns:
+      - instrument_id
+      - event_date
+      - sys_from

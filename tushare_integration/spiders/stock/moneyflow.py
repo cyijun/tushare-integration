@@ -34,3 +34,9 @@ class MoneyFlowMktDCSpider(DailySpider):
 class MoneyFlowTHSSpider(DailySpider):
     name = "stock/moneyflow/moneyflow_ths"
     custom_settings = {"TABLE_NAME": "moneyflow_ths", "MIN_CAL_DATE": "2019-07-26"}
+
+
+class MoneyFlowCntTHSSpider(DailySpider):
+    name = "stock/moneyflow/moneyflow_cnt_ths"
+    api_name = "moneyflow_cnt_ths"
+    custom_settings = {"TABLE_NAME": "moneyflow_cnt_ths"}

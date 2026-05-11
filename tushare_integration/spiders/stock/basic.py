@@ -63,6 +63,73 @@ class StockHSConstSpider(TushareSpider):
             yield self.get_scrapy_request(params)
 
 
+class StockSTSpider(DailySpider):
+    name = "stock/basic/stock_st"
+    description = 'ST股票列表'
+    api_name = "stock_st"
+    custom_settings = {"TABLE_NAME": "stock_st", "MIN_CAL_DATE": "2016-01-01"}
+
+
+class STSpider(TSCodeSpider):
+    name = "stock/basic/st"
+    description = 'ST风险警示板股票'
+    api_name = "st"
+    custom_settings = {"TABLE_NAME": "st", "BASIC_TABLE": "stock_basic"}
+
+
+class StockHSGTSpider(DailySpider):
+    name = "stock/basic/stock_hsgt"
+    description = '沪深港通股票列表'
+    api_name = "stock_hsgt"
+    custom_settings = {"TABLE_NAME": "stock_hsgt", "MIN_CAL_DATE": "2025-08-12"}
+    stock_hsgt_types = ["HK_SZ", "SZ_HK", "HK_SH", "SH_HK"]
+
+    def start_requests(self):
+        min_cal_date = self.custom_settings.get("MIN_CAL_DATE", '1970-01-01')
+        conn = self.get_db_engine()
+        db_name = self.spider_settings.database.db_name
+        table_name = self.get_table_name()
+
+        existing_data = conn.query_df(
+            f"""
+                SELECT DISTINCT trade_date, type
+                FROM {db_name}.{table_name}
+                """
+        )
+        existing_keys = set()
+        if not existing_data.empty:
+            existing_keys = {
+                (trade_date.strftime("%Y%m%d"), hsgt_type)
+                for trade_date, hsgt_type in existing_data[["trade_date", "type"]].itertuples(index=False)
+            }
+
+        cal_dates = conn.query_df(
+            f"""
+                SELECT DISTINCT cal_date
+                FROM {db_name}.trade_cal
+                WHERE is_open = 1
+                  AND cal_date >= '{min_cal_date}'
+                  AND cal_date <= today()
+                  AND exchange = 'SSE'
+                ORDER BY cal_date
+                """
+        )
+
+        for cal_date in cal_dates["cal_date"]:
+            trade_date = cal_date.strftime("%Y%m%d")
+            for hsgt_type in self.stock_hsgt_types:
+                if (trade_date, hsgt_type) in existing_keys:
+                    continue
+                yield self.get_scrapy_request(params={"trade_date": trade_date, "type": hsgt_type})
+
+
+class BSEMappingSpider(TushareSpider):
+    name = "stock/basic/bse_mapping"
+    description = '北交所新旧代码对照'
+    api_name = "bse_mapping"
+    custom_settings = {"TABLE_NAME": "bse_mapping"}
+
+
 class TradeCalSpider(TushareSpider):
     name = "stock/basic/trade_cal"
     api_name = "trade_cal"

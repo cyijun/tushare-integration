@@ -53,24 +53,39 @@ class SQLAlchemyEngine(DBEngine):
         self.conn = create_engine(self.settings.database.get_uri()).connect()
 
     def insert(self, table_name: str, schema: dict, data: pd.DataFrame) -> None:
+        column_bindings = self.build_column_bindings(data.columns.tolist())
         sql = self.templates['insert'].render(
             db_name=self.settings.database.db_name,
             table_name=table_name,
             columns=data.columns.tolist(),
+            column_bindings=column_bindings,
             template_params=self.settings.database.template_params,
         )
 
-        self.conn.execute(statement=text(sql), parameters=data.to_dict('records'))  # type: ignore
+        self.conn.execute(statement=text(sql), parameters=self.build_bound_records(data, column_bindings))  # type: ignore
 
     def upsert(self, table_name: str, schema: dict, data: pd.DataFrame) -> None:
+        column_bindings = self.build_column_bindings(data.columns.tolist())
         sql = self.templates['upsert'].render(
             db_name=self.settings.database.db_name,
             table_name=table_name,
             columns=data.columns.tolist(),
+            column_bindings=column_bindings,
             primary_key=schema.get('primary_key', []),
             template_params=self.settings.database.template_params,
         )
-        self.conn.execute(statement=text(sql), parameters=data.to_dict('records'))  # type: ignore
+        self.conn.execute(statement=text(sql), parameters=self.build_bound_records(data, column_bindings))  # type: ignore
+
+    @staticmethod
+    def build_column_bindings(columns: list[str]) -> list[dict[str, str]]:
+        return [{"name": column, "bind": f"col_{index}"} for index, column in enumerate(columns)]
+
+    @staticmethod
+    def build_bound_records(data: pd.DataFrame, column_bindings: list[dict[str, str]]) -> list[dict[str, object]]:
+        return [
+            {binding["bind"]: row[binding["name"]] for binding in column_bindings}
+            for row in data.to_dict("records")
+        ]
 
     def create_table(self, table_name: str, schema: dict) -> None:
         self.conn.execute(

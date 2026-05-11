@@ -3,8 +3,8 @@ api_name: moneyflow_mkt_dc
 name: moneyflow_mkt_dc
 comment: 大盘资金流向（DC）
 dependencies:
-  - stock_basic
-  - trade_cal
+  - stock/basic/stock_basic
+  - stock/basic/trade_cal
 primary_key:
   - trade_date
 indexes: []

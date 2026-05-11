@@ -48,10 +48,14 @@ cronjob:
       - name: stock/basic/stock_basic
       - name: stock/basic/namechange
       - name: stock/basic/hs_const
+      - name: stock/basic/stock_st
+      - name: stock/basic/st
+      - name: stock/basic/stock_hsgt
       - name: stock/basic/trade_cal
       - name: stock/basic/stock_company
       - name: stock/basic/stk_managers
       - name: stock/basic/stk_rewards
+      - name: stock/basic/bse_mapping
       - name: stock/basic/new_share
     #- name: stock/basic/stk_premarket
       - name: stock/basic/bak_basic
@@ -78,6 +82,17 @@ cronjob:
       - name: stock/margin/slb_sec_detail
       - name: stock/margin/slb_sec
   - cron_expr: UnSupported
+    name: stock/moneyflow
+    spiders:
+      - name: stock/moneyflow/moneyflow
+      - name: stock/moneyflow/moneyflow_hsgt
+      - name: stock/moneyflow/moneyflow_dc
+      - name: stock/moneyflow/moneyflow_ind_dc
+      - name: stock/moneyflow/moneyflow_ind_ths
+      - name: stock/moneyflow/moneyflow_mkt_dc
+      - name: stock/moneyflow/moneyflow_ths
+      - name: stock/moneyflow/moneyflow_cnt_ths
+  - cron_expr: UnSupported
     name: stock/market
     spiders:
       - name: stock/market/margin_secs
@@ -94,22 +109,40 @@ cronjob:
       - name: stock/market/block_trade
       - name: stock/market/stk_holdernumber
       - name: stock/market/stk_holdertrade
+      - name: stock/market/stk_shock
+      - name: stock/market/stk_high_shock
+      - name: stock/market/stk_alert
+      - name: stock/market/stk_account
+      - name: stock/market/stk_account_old
+      - name: stock/market/dc_index
+      - name: stock/market/dc_member
+      - name: stock/market/dc_daily
+      - name: stock/market/tdx_index
+      - name: stock/market/tdx_member
+      - name: stock/market/tdx_daily
+      - name: stock/market/dc_concept
+      - name: stock/market/dc_concept_cons
   - cron_expr: UnSupported
     name: stock/quotes
     spiders:
       - name: stock/quotes/daily
       - name: stock/quotes/weekly
       - name: stock/quotes/monthly
+      - name: stock/quotes/stk_week_month_adj
       - name: stock/quotes/adj_factor
       - name: stock/quotes/suspend_d
       - name: stock/quotes/hsgt_top10
-      - name: stock/quotes/moneyflow
-      - name: stock/quotes/moneyflow_hsgt
       - name: stock/quotes/stk_limit
       - name: stock/quotes/daily_basic
       - name: stock/quotes/ggt_top10
       - name: stock/quotes/ggt_daily
+      - name: stock/quotes/ggt_monthly
       - name: stock/quotes/bak_daily
+      - name: stock/quotes/stk_auction_o
+      - name: stock/quotes/stk_auction_c
+      - name: stock/quotes/stk_nineturn
+      - name: stock/quotes/stk_ah_comparison
+      - name: stock/quotes/stk_auction
     #- name: stock/quotes/stk_mins
   - cron_expr: UnSupported
     name: stock/special

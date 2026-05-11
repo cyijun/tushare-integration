@@ -1,0 +1,76 @@
+id: 4017
+api_name: dc_index
+name: dc_index
+comment: 东方财富概念板块
+dependencies:
+  - stock/basic/trade_cal
+primary_key:
+  - ts_code
+  - trade_date
+indexes: []
+columns:
+  - name: ts_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 概念代码
+  - name: trade_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 交易日期
+  - name: name
+    data_type: str
+    length: 255
+    default: ""
+    comment: 概念名称
+  - name: leading
+    data_type: str
+    length: 255
+    default: ""
+    comment: 领涨股票名称
+  - name: leading_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 领涨股票代码
+  - name: pct_change
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 涨跌幅
+  - name: leading_pct
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 领涨股票涨跌幅
+  - name: total_mv
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 总市值
+  - name: turnover_rate
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 换手率
+  - name: up_num
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 上涨家数
+  - name: down_num
+    data_type: int
+    length: 0
+    default: "0"
+    comment: 下降家数
+  - name: idx_type
+    data_type: str
+    length: 64
+    default: ""
+    comment: 板块类型
+  - name: level
+    data_type: str
+    length: 64
+    default: ""
+    comment: 行业层级

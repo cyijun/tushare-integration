@@ -1,0 +1,48 @@
+id: 4002
+api_name: st
+name: st
+comment: ST风险警示板股票
+dependencies:
+  - stock/basic/stock_basic
+primary_key:
+  - ts_code
+  - pub_date
+  - imp_date
+  - st_tpye
+indexes: []
+columns:
+  - name: ts_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 股票代码
+  - name: name
+    data_type: str
+    length: 255
+    default: ""
+    comment: 股票名称
+  - name: pub_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 发布日期
+  - name: imp_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 实施日期
+  - name: st_tpye
+    data_type: str
+    length: 64
+    default: ""
+    comment: 类型
+  - name: st_reason
+    data_type: str
+    length: 512
+    default: ""
+    comment: st变更原因
+  - name: st_explain
+    data_type: str
+    length: 1024
+    default: ""
+    comment: st变更详细原因

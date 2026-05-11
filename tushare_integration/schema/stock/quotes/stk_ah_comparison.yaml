@@ -1,0 +1,67 @@
+id: 4015
+api_name: stk_ah_comparison
+name: stk_ah_comparison
+comment: AH股比价
+dependencies:
+  - stock/basic/trade_cal
+primary_key:
+  - hk_code
+  - ts_code
+  - trade_date
+indexes: []
+columns:
+  - name: hk_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: 港股股票代码
+  - name: ts_code
+    data_type: str
+    length: 16
+    default: ""
+    comment: A股股票代码
+  - name: trade_date
+    data_type: date
+    length: 0
+    default: "1970-01-01"
+    comment: 交易日期
+  - name: hk_name
+    data_type: str
+    length: 255
+    default: ""
+    comment: 港股股票名称
+  - name: hk_pct_chg
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 港股股票涨跌幅
+  - name: hk_close
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 港股股票收盘价
+  - name: name
+    data_type: str
+    length: 255
+    default: ""
+    comment: A股股票名称
+  - name: close
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: A股股票收盘价
+  - name: pct_chg
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: A股股票涨跌幅
+  - name: ah_comparison
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 比价
+  - name: ah_premium
+    data_type: float
+    length: 0
+    default: "0.0"
+    comment: 溢价
