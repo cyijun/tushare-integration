@@ -183,6 +183,12 @@ class DailyTypeSpider(DailySpider):
 class DailyBoardMemberSpider(DailySpider):
     board_table: str
     board_code_field = "ts_code"
+    member_code_field = "ts_code"
+    request_code_param = "ts_code"
+
+    @staticmethod
+    def format_trade_date(trade_date) -> str:
+        return trade_date.strftime("%Y%m%d")
 
     def start_requests(self):
         min_cal_date = self.custom_settings.get("MIN_CAL_DATE", '1970-01-01')
@@ -192,45 +198,35 @@ class DailyBoardMemberSpider(DailySpider):
 
         existing_data = conn.query_df(
             f"""
-                SELECT DISTINCT trade_date, ts_code
+                SELECT DISTINCT trade_date, `{self.member_code_field}` AS board_code
                 FROM {db_name}.{table_name}
                 """
         )
         existing_keys = set()
         if not existing_data.empty:
             existing_keys = {
-                (trade_date.strftime("%Y%m%d"), ts_code)
-                for trade_date, ts_code in existing_data[["trade_date", "ts_code"]].itertuples(index=False)
+                (self.format_trade_date(trade_date), board_code)
+                for trade_date, board_code in existing_data[["trade_date", "board_code"]].itertuples(index=False)
             }
 
-        board_codes = conn.query_df(
+        board_pairs = conn.query_df(
             f"""
-                SELECT DISTINCT {self.board_code_field} AS ts_code
+                SELECT DISTINCT trade_date, `{self.board_code_field}` AS board_code
                 FROM {db_name}.{self.board_table}
                 WHERE {self.board_code_field} != ''
+                  AND trade_date >= '{min_cal_date}'
+                  AND trade_date <= today()
+                ORDER BY trade_date, board_code
                 """
         )
-        if board_codes.empty:
+        if board_pairs.empty:
             return
 
-        cal_dates = conn.query_df(
-            f"""
-                SELECT DISTINCT cal_date
-                FROM {db_name}.trade_cal
-                WHERE is_open = 1
-                  AND cal_date >= '{min_cal_date}'
-                  AND cal_date <= today()
-                  AND exchange = 'SSE'
-                ORDER BY cal_date
-                """
-        )
-
-        for cal_date in cal_dates["cal_date"]:
-            trade_date = cal_date.strftime("%Y%m%d")
-            for ts_code in board_codes["ts_code"]:
-                if (trade_date, ts_code) in existing_keys:
-                    continue
-                yield self.get_scrapy_request(params={"trade_date": trade_date, "ts_code": ts_code})
+        for trade_date_value, board_code in board_pairs[["trade_date", "board_code"]].itertuples(index=False):
+            trade_date = self.format_trade_date(trade_date_value)
+            if (trade_date, board_code) in existing_keys:
+                continue
+            yield self.get_scrapy_request(params={"trade_date": trade_date, self.request_code_param: board_code})
 
 
 class DCIndexSpider(DailyTypeSpider):
@@ -287,51 +283,5 @@ class DCConceptConsSpider(DailyBoardMemberSpider):
     custom_settings = {"TABLE_NAME": "dc_concept_cons", "MIN_CAL_DATE": "2026-02-03"}
     board_table = "dc_concept"
     board_code_field = "theme_code"
-
-    def start_requests(self):
-        min_cal_date = self.custom_settings.get("MIN_CAL_DATE", '1970-01-01')
-        conn = self.get_db_engine()
-        db_name = self.spider_settings.database.db_name
-        table_name = self.get_table_name()
-
-        existing_data = conn.query_df(
-            f"""
-                SELECT DISTINCT trade_date, theme_code
-                FROM {db_name}.{table_name}
-                """
-        )
-        existing_keys = set()
-        if not existing_data.empty:
-            existing_keys = {
-                (trade_date.strftime("%Y%m%d"), theme_code)
-                for trade_date, theme_code in existing_data[["trade_date", "theme_code"]].itertuples(index=False)
-            }
-
-        theme_codes = conn.query_df(
-            f"""
-                SELECT DISTINCT theme_code
-                FROM {db_name}.{self.board_table}
-                WHERE theme_code != ''
-                """
-        )
-        if theme_codes.empty:
-            return
-
-        cal_dates = conn.query_df(
-            f"""
-                SELECT DISTINCT cal_date
-                FROM {db_name}.trade_cal
-                WHERE is_open = 1
-                  AND cal_date >= '{min_cal_date}'
-                  AND cal_date <= today()
-                  AND exchange = 'SSE'
-                ORDER BY cal_date
-                """
-        )
-
-        for cal_date in cal_dates["cal_date"]:
-            trade_date = cal_date.strftime("%Y%m%d")
-            for theme_code in theme_codes["theme_code"]:
-                if (trade_date, theme_code) in existing_keys:
-                    continue
-                yield self.get_scrapy_request(params={"trade_date": trade_date, "theme_code": theme_code})
+    member_code_field = "theme_code"
+    request_code_param = "theme_code"
