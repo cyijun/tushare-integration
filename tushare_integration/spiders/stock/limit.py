@@ -30,43 +30,43 @@ class HMListSpider(TushareSpider):
 class KplConceptConsSpider(DailySpider):
     name = "stock/limit/kpl_concept_cons"
     api_name = "kpl_concept_cons"
-    custom_settings = {"TABLE_NAME": "kpl_concept_cons"}
+    custom_settings = {"TABLE_NAME": "kpl_concept_cons", "MIN_CAL_DATE": "2022-01-01"}
 
 
 class KplConceptSpider(DailySpider):
     name = "stock/limit/kpl_concept"
     api_name = "kpl_concept"
-    custom_settings = {"TABLE_NAME": "kpl_concept"}
+    custom_settings = {"TABLE_NAME": "kpl_concept", "MIN_CAL_DATE": "2022-01-01"}
 
 
 class KplListSpider(DailySpider):
     name = "stock/limit/kpl_list"
     api_name = "kpl_list"
-    custom_settings = {"TABLE_NAME": "kpl_list"}
+    custom_settings = {"TABLE_NAME": "kpl_list", "MIN_CAL_DATE": "2022-01-01"}
 
 
 class LimitCptListSpider(DailySpider):
     name = "stock/limit/limit_cpt_list"
     api_name = "limit_cpt_list"
-    custom_settings = {"TABLE_NAME": "limit_cpt_list"}
+    custom_settings = {"TABLE_NAME": "limit_cpt_list", "MIN_CAL_DATE": "2020-01-01"}
 
 
 class LimitListDSpider(DailySpider):
     name = "stock/limit/limit_list_d"
     api_name = "limit_list_d"
-    custom_settings = {"TABLE_NAME": "limit_list_d"}
+    custom_settings = {"TABLE_NAME": "limit_list_d", "MIN_CAL_DATE": "2020-01-01"}
 
 
 class LimitListTHSSpider(DailySpider):
     name = "stock/limit/limit_list_ths"
     api_name = "limit_list_ths"
-    custom_settings = {"TABLE_NAME": "limit_list_ths"}
+    custom_settings = {"TABLE_NAME": "limit_list_ths", "MIN_CAL_DATE": "2020-01-01"}
 
 
 class LimitStepSpider(DailySpider):
     name = "stock/limit/limit_step"
     api_name = "limit_step"
-    custom_settings = {"TABLE_NAME": "limit_step"}
+    custom_settings = {"TABLE_NAME": "limit_step", "MIN_CAL_DATE": "2020-01-01"}
 
 
 class THSHotSpider(DailySpider):

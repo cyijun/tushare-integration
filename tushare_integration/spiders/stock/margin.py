@@ -4,13 +4,13 @@ from tushare_integration.spiders.tushare import DailySpider, FinancialReportSpid
 class MarginSpider(DailySpider):
     name = "stock/margin/margin"
     api_name = "margin"
-    custom_settings = {"TABLE_NAME": "margin", 'MIN_CAL_DATE': '2010-01-01'}
+    custom_settings = {"TABLE_NAME": "margin", 'MIN_CAL_DATE': '2010-03-31'}
 
 
 class MarginDetailSpider(DailySpider):
     name = "stock/margin/margin_detail"
     api_name = "margin_detail"
-    custom_settings = {"TABLE_NAME": "margin_detail", 'MIN_CAL_DATE': '2010-01-01'}
+    custom_settings = {"TABLE_NAME": "margin_detail", 'MIN_CAL_DATE': '2010-03-31'}
 
 
 class SLBLenMM(DailySpider):

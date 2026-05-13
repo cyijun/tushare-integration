@@ -11,7 +11,7 @@ from tushare_integration.spiders.tushare import DailySpider, TSCodeSpider, Tusha
 
 class StockDailySpider(DailySpider):
     name = "stock/quotes/daily"
-    custom_settings = {"TABLE_NAME": "daily"}
+    custom_settings = {"TABLE_NAME": "daily", "MIN_CAL_DATE": "1990-12-19"}
 
 
 class StockWeeklySpider(TushareSpider):
@@ -150,7 +150,7 @@ class StkWeekMonthAdjSpider(StockWeeklyMonthlySpider):
 
 class AdjFactorSpider(DailySpider):
     name = "stock/quotes/adj_factor"
-    custom_settings = {"TABLE_NAME": "adj_factor"}
+    custom_settings = {"TABLE_NAME": "adj_factor", "MIN_CAL_DATE": "1990-12-19"}
 
 
 class SuspendDSpider(DailySpider):
@@ -165,12 +165,12 @@ class HSGTTop10Spider(DailySpider):
 
 class StkLimitSpider(DailySpider):
     name = "stock/quotes/stk_limit"
-    custom_settings = {"TABLE_NAME": "stk_limit", 'MIN_CAL_DATE': '2007-01-01'}
+    custom_settings = {"TABLE_NAME": "stk_limit", 'MIN_CAL_DATE': '2007-01-04'}
 
 
 class DailyBasicSpider(DailySpider):
     name = "stock/quotes/daily_basic"
-    custom_settings = {"TABLE_NAME": "daily_basic"}
+    custom_settings = {"TABLE_NAME": "daily_basic", "MIN_CAL_DATE": "1990-12-19"}
 
 
 class GGTTop10Spider(DailySpider):
@@ -201,13 +201,13 @@ class BakDailySpider(DailySpider):
 class StkAuctionOSpider(DailySpider):
     name = "stock/quotes/stk_auction_o"
     api_name = "stk_auction_o"
-    custom_settings = {"TABLE_NAME": "stk_auction_o"}
+    custom_settings = {"TABLE_NAME": "stk_auction_o", "MIN_CAL_DATE": "2010-01-01"}
 
 
 class StkAuctionCSpider(DailySpider):
     name = "stock/quotes/stk_auction_c"
     api_name = "stk_auction_c"
-    custom_settings = {"TABLE_NAME": "stk_auction_c"}
+    custom_settings = {"TABLE_NAME": "stk_auction_c", "MIN_CAL_DATE": "2010-01-01"}
 
 
 class StkNineTurnSpider(TSCodeSpider):
@@ -235,7 +235,7 @@ class StkAHComparisonSpider(DailySpider):
 class StkAuctionSpider(DailySpider):
     name = "stock/quotes/stk_auction"
     api_name = "stk_auction"
-    custom_settings = {"TABLE_NAME": "stk_auction"}
+    custom_settings = {"TABLE_NAME": "stk_auction", "MIN_CAL_DATE": "2010-01-01"}
 
 
 # noinspection SqlNoDataSourceInspection

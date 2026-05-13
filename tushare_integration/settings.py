@@ -122,6 +122,15 @@ class TushareIntegrationSettings(BaseSettings):
         default=False, title='是否开启并行模式', description='并行模式下将会关闭自动依赖解析，用户需要自行处理任务依赖'
     )
     batch_id: Annotated[str, env_variable('BATCH_ID')] = Field('', description='批次ID')
+    incremental_backfill_days: Annotated[int, env_variable('INCREMENTAL_BACKFILL_DAYS')] = Field(
+        default=0,
+        ge=0,
+        description='增量采集时从最新已入库日期向前回看的自然日天数',
+    )
+    default_min_cal_date: Annotated[str, env_variable('DEFAULT_MIN_CAL_DATE')] = Field(
+        default='2010-01-01',
+        description='未显式配置MIN_CAL_DATE的日频接口首次采集起始日期',
+    )
 
     bot_name: str = Field(default='tushare_integration', description='爬虫名称')
     spider_modules: list[str] = Field(default=['tushare_integration.spiders'], description='爬虫模块')

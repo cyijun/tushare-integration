@@ -245,18 +245,91 @@ class DailySpider(TushareSpider):
     name: str
     custom_settings = {"TABLE_NAME": "daily", "TRADE_DATE_FIELD": "trade_date"}
 
+    def get_trade_date_field(self) -> str:
+        return self.custom_settings.get('TRADE_DATE_FIELD', 'trade_date')
+
+    def get_min_cal_date(self) -> datetime.date:
+        default_min_cal_date = getattr(self.spider_settings, "default_min_cal_date", '2010-01-01')
+        min_cal_date = self.parse_date_value(self.custom_settings.get("MIN_CAL_DATE", default_min_cal_date))
+        return min_cal_date or datetime.date(2010, 1, 1)
+
+    def get_backfill_days(self) -> int:
+        backfill_days = self.custom_settings.get(
+            "BACKFILL_DAYS",
+            getattr(self.spider_settings, "incremental_backfill_days", 0),
+        )
+        return max(0, int(backfill_days or 0))
+
+    @staticmethod
+    def parse_date_value(value) -> datetime.date | None:
+        if value is None:
+            return None
+        try:
+            if pd.isna(value):
+                return None
+        except (TypeError, ValueError):
+            pass
+        if isinstance(value, datetime.datetime):
+            return value.date()
+        if isinstance(value, datetime.date):
+            return value
+        parsed = pd.to_datetime(value, errors="coerce")
+        if pd.isna(parsed):
+            return None
+        return parsed.date()
+
+    @staticmethod
+    def format_trade_date(value) -> str:
+        parsed = DailySpider.parse_date_value(value)
+        if parsed is None:
+            raise ValueError(f"Invalid trade date: {value}")
+        return parsed.strftime("%Y%m%d")
+
+    def get_incremental_start_date(
+        self,
+        conn,
+        date_field: str | None = None,
+        table_name: str | None = None,
+        where_clause: str = "",
+    ) -> datetime.date:
+        date_field = date_field or self.get_trade_date_field()
+        table_name = table_name or self.get_table_name()
+        db_name = self.spider_settings.database.db_name
+        min_cal_date = self.get_min_cal_date()
+
+        latest_data = conn.query_df(
+            f"""
+                SELECT count() AS row_count, max(`{date_field}`) AS latest_trade_date
+                FROM {db_name}.{table_name}
+                {where_clause}
+                """
+        )
+        if latest_data.empty or int(latest_data["row_count"].iloc[0]) == 0:
+            return min_cal_date
+
+        latest_trade_date = self.parse_date_value(latest_data["latest_trade_date"].iloc[0])
+        if latest_trade_date is None:
+            return min_cal_date
+
+        start_date = latest_trade_date - datetime.timedelta(days=self.get_backfill_days())
+        return max(min_cal_date, start_date)
+
     def start_requests(self):
-        min_cal_date = self.custom_settings.get("MIN_CAL_DATE", '1970-01-01')
         conn = self.get_db_engine()
         db_name = self.spider_settings.database.db_name
+        trade_date_field = self.get_trade_date_field()
+        start_date = self.get_incremental_start_date(conn, trade_date_field)
 
         cal_dates = conn.query_df(
             f"""
                 SELECT DISTINCT cal_date
                 FROM {db_name}.trade_cal
-                WHERE cal_date NOT IN (SELECT `{self.custom_settings.get('TRADE_DATE_FIELD', 'trade_date')}` FROM {db_name}.{self.get_table_name()})
+                WHERE cal_date NOT IN (
+                    SELECT `{trade_date_field}` FROM {db_name}.{self.get_table_name()}
+                    WHERE `{trade_date_field}` >= '{start_date}'
+                )
                   AND is_open = 1
-                  AND cal_date >= '{min_cal_date}'
+                  AND cal_date >= '{start_date}'
                   AND cal_date <= today()
                   AND exchange = 'SSE'
                 ORDER BY cal_date
@@ -270,7 +343,7 @@ class DailySpider(TushareSpider):
 
         for trade_date in trade_dates:
             yield self.get_scrapy_request(
-                params={self.custom_settings.get('TRADE_DATE_FIELD', 'trade_date'): trade_date}
+                params={trade_date_field: trade_date}
             )
 
 

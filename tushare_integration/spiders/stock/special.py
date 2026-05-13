@@ -91,7 +91,7 @@ class CyqChipsSpider(TushareSpider):
 class StkFactorSpider(DailySpider):
     name = "stock/special/stk_factor"
     api_name = "stk_factor"
-    custom_settings = {"TABLE_NAME": "stk_factor"}
+    custom_settings = {"TABLE_NAME": "stk_factor", "MIN_CAL_DATE": "1990-12-19"}
 
 
 class CCASSHoldSpider(DailySpider):
@@ -134,4 +134,4 @@ class BrokerRecommend(TushareSpider):
 class StkFactorPro(DailySpider):
     name = "stock/special/stk_factor_pro"
     api_name = "stk_factor_pro"
-    custom_settings = {"TABLE_NAME": "stk_factor_pro"}
+    custom_settings = {"TABLE_NAME": "stk_factor_pro", "MIN_CAL_DATE": "2010-01-01"}

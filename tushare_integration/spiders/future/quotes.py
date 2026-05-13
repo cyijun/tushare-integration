@@ -5,7 +5,7 @@ from tushare_integration.spiders.tushare import DailySpider
 
 class FutDailySpider(DailySpider):
     name = "future/quotes/fut_daily"
-    custom_settings = {"TABLE_NAME": "fut_daily"}
+    custom_settings = {"TABLE_NAME": "fut_daily", "MIN_CAL_DATE": "1995-04-17"}
 
 
 class FutHoldingSpider(DailySpider):
@@ -29,6 +29,12 @@ class FutHoldingSpider(DailySpider):
         }
 
         for exchange in min_cal_dates.keys():
+            start_date = self.get_incremental_start_date(
+                conn,
+                "trade_date",
+                where_clause=f"WHERE exchange = '{exchange}'",
+            )
+            start_date = max(start_date, self.parse_date_value(min_cal_dates[exchange]))
             # 按照trade_date和exchange作为联合主键，使用交易日历来获取没有采集的日期
             # 这会导致请求次数变多，但是可以保证数据的完整性，以及故障恢复的正确性
             trade_dates = [
@@ -38,9 +44,12 @@ class FutHoldingSpider(DailySpider):
                     SELECT DISTINCT cal_date
                     FROM trade_cal
                     WHERE cal_date NOT IN 
-                    (SELECT `trade_date` FROM {self.get_table_name()} WHERE exchange = '{exchange}')
+                    (
+                        SELECT `trade_date` FROM {self.get_table_name()}
+                        WHERE exchange = '{exchange}' AND `trade_date` >= '{start_date}'
+                    )
                         AND is_open = 1
-                        AND cal_date >= '{min_cal_dates[exchange]}'
+                        AND cal_date >= '{start_date}'
                         AND cal_date <= today()
                         AND exchange = '{exchange}'
                     ORDER BY cal_date

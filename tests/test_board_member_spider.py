@@ -35,6 +35,7 @@ class BoardMemberSpiderTest(unittest.TestCase):
         spider.spider_settings = self._settings()
         spider.db_engine = DummyDB(
             [
+                pd.DataFrame({"row_count": [0], "latest_trade_date": [pd.NaT]}),
                 pd.DataFrame(
                     {
                         "trade_date": [pd.Timestamp("2024-12-20")],
@@ -63,9 +64,10 @@ class BoardMemberSpiderTest(unittest.TestCase):
                 {"trade_date": "20241223", "ts_code": "BK0837.DC"},
             ],
         )
-        self.assertEqual(len(spider.db_engine.queries), 2)
+        self.assertEqual(len(spider.db_engine.queries), 3)
         self.assertIn("FROM default.dc_member", spider.db_engine.queries[0])
-        self.assertIn("FROM default.dc_index", spider.db_engine.queries[1])
+        self.assertIn("FROM default.dc_member", spider.db_engine.queries[1])
+        self.assertIn("FROM default.dc_index", spider.db_engine.queries[2])
         self.assertNotIn("trade_cal", "\n".join(spider.db_engine.queries))
 
     def test_dc_concept_cons_uses_theme_code_pairs(self):
@@ -73,10 +75,11 @@ class BoardMemberSpiderTest(unittest.TestCase):
         spider.spider_settings = self._settings()
         spider.db_engine = DummyDB(
             [
+                pd.DataFrame({"row_count": [0], "latest_trade_date": [pd.NaT]}),
                 pd.DataFrame(columns=["trade_date", "board_code"]),
                 pd.DataFrame(
                     {
-                        "trade_date": [pd.Timestamp("2026-02-03")],
+                        "trade_date": [pd.Timestamp("2026-04-17")],
                         "board_code": ["TS001"],
                     }
                 ),
@@ -87,10 +90,10 @@ class BoardMemberSpiderTest(unittest.TestCase):
 
         self.assertEqual(
             [self._request_params(request) for request in requests],
-            [{"trade_date": "20260203", "theme_code": "TS001"}],
+            [{"trade_date": "20260417", "theme_code": "TS001"}],
         )
-        self.assertIn("`theme_code` AS board_code", spider.db_engine.queries[0])
         self.assertIn("`theme_code` AS board_code", spider.db_engine.queries[1])
+        self.assertIn("`theme_code` AS board_code", spider.db_engine.queries[2])
 
 
 if __name__ == "__main__":

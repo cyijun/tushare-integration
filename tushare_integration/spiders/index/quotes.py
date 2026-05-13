@@ -46,18 +46,18 @@ class IndexDailySpider(DailySpider):
 
 class DailyInfoSpider(DailySpider):
     name = "index/quotes/daily_info"
-    custom_settings = {"TABLE_NAME": "daily_info"}
+    custom_settings = {"TABLE_NAME": "daily_info", "MIN_CAL_DATE": "1990-12-19"}
 
 
 # noinspection SpellCheckingInspection
 class IndexDailyBasicSpider(DailySpider):
     name = "index/quotes/index_dailybasic"
-    custom_settings = {"TABLE_NAME": "index_dailybasic"}
+    custom_settings = {"TABLE_NAME": "index_dailybasic", "MIN_CAL_DATE": "2004-01-02"}
 
 
 class IndexGlobalSpider(DailySpider):
     name = "index/quotes/index_global"
-    custom_settings = {"TABLE_NAME": "index_global"}
+    custom_settings = {"TABLE_NAME": "index_global", "MIN_CAL_DATE": "1990-12-19"}
 
 
 class IndexMonthlySpider(StockMonthlySpider):
@@ -80,17 +80,20 @@ class IndexWeightSpider(DailySpider):
     }
 
     def start_requests(self):
-        min_cal_date = self.custom_settings.get("MIN_CAL_DATE", '1970-01-01')
         conn = self.get_db_engine()
         db_name = self.spider_settings.database.db_name
+        start_date = self.get_incremental_start_date(conn, "trade_date")
 
         cal_dates = conn.query_df(
             f"""
                 SELECT DISTINCT cal_date
                 FROM {db_name}.trade_cal
-                WHERE cal_date NOT IN (SELECT trade_date FROM {db_name}.{self.get_table_name()})
+                WHERE cal_date NOT IN (
+                    SELECT trade_date FROM {db_name}.{self.get_table_name()}
+                    WHERE trade_date >= '{start_date}'
+                )
                   AND is_open = 1
-                  AND cal_date >= '{min_cal_date}'
+                  AND cal_date >= '{start_date}'
                   AND cal_date <= today()
                   AND exchange = 'SSE'
                 ORDER BY cal_date

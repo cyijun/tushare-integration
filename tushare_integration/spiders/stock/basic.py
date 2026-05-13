@@ -67,7 +67,7 @@ class StockSTSpider(DailySpider):
     name = "stock/basic/stock_st"
     description = 'ST股票列表'
     api_name = "stock_st"
-    custom_settings = {"TABLE_NAME": "stock_st", "MIN_CAL_DATE": "2016-01-01"}
+    custom_settings = {"TABLE_NAME": "stock_st", "MIN_CAL_DATE": "2016-08-09"}
 
 
 class STSpider(TSCodeSpider):
@@ -85,21 +85,30 @@ class StockHSGTSpider(DailySpider):
     stock_hsgt_types = ["HK_SZ", "SZ_HK", "HK_SH", "SH_HK"]
 
     def start_requests(self):
-        min_cal_date = self.custom_settings.get("MIN_CAL_DATE", '1970-01-01')
         conn = self.get_db_engine()
         db_name = self.spider_settings.database.db_name
         table_name = self.get_table_name()
+        start_dates = {
+            hsgt_type: self.get_incremental_start_date(
+                conn,
+                "trade_date",
+                where_clause=f"WHERE type = '{hsgt_type}'",
+            )
+            for hsgt_type in self.stock_hsgt_types
+        }
+        min_start_date = min(start_dates.values())
 
         existing_data = conn.query_df(
             f"""
                 SELECT DISTINCT trade_date, type
                 FROM {db_name}.{table_name}
+                WHERE trade_date >= '{min_start_date}'
                 """
         )
         existing_keys = set()
         if not existing_data.empty:
             existing_keys = {
-                (trade_date.strftime("%Y%m%d"), hsgt_type)
+                (self.format_trade_date(trade_date), hsgt_type)
                 for trade_date, hsgt_type in existing_data[["trade_date", "type"]].itertuples(index=False)
             }
 
@@ -108,7 +117,7 @@ class StockHSGTSpider(DailySpider):
                 SELECT DISTINCT cal_date
                 FROM {db_name}.trade_cal
                 WHERE is_open = 1
-                  AND cal_date >= '{min_cal_date}'
+                  AND cal_date >= '{min_start_date}'
                   AND cal_date <= today()
                   AND exchange = 'SSE'
                 ORDER BY cal_date
@@ -116,8 +125,11 @@ class StockHSGTSpider(DailySpider):
         )
 
         for cal_date in cal_dates["cal_date"]:
-            trade_date = cal_date.strftime("%Y%m%d")
+            cal_date_value = self.parse_date_value(cal_date)
+            trade_date = self.format_trade_date(cal_date)
             for hsgt_type in self.stock_hsgt_types:
+                if cal_date_value < start_dates[hsgt_type]:
+                    continue
                 if (trade_date, hsgt_type) in existing_keys:
                     continue
                 yield self.get_scrapy_request(params={"trade_date": trade_date, "type": hsgt_type})
@@ -181,11 +193,11 @@ class StkPremarket(DailySpider):
     name = "stock/basic/stk_premarket"
     description = '每日股本(盘前数据)'
     api_name = "stk_premarket"
-    custom_settings = {"TABLE_NAME": "stk_premarket"}
+    custom_settings = {"TABLE_NAME": "stk_premarket", "MIN_CAL_DATE": "2010-01-01"}
 
 
 class StockBakBasicSpider(DailySpider):
     name = "stock/basic/bak_basic"
     description = '备用列表'
     api_name = "bak_basic"
-    custom_settings = {"MIN_CAL_DATE": "2016-08-01"}
+    custom_settings = {"MIN_CAL_DATE": "2016-08-09"}
