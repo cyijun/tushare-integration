@@ -42,6 +42,8 @@ python main.py dws sync dws_stock_factor_wide --validation-mode warn_only
 ```bash
 python main.py quality list dwd dwd_stock_eod_price
 python main.py quality run --layer dwd --table dwd_stock_eod_price --mode warn_only
+python main.py quality run --layer dwd --all --mode warn_only
+python main.py quality run all --mode warn_only
 python main.py quality report <run_id>
 ```
 

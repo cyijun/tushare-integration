@@ -5,6 +5,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Literal
 
 import pandas as pd
@@ -19,6 +20,27 @@ ValidationSeverity = Literal["BLOCKER", "WARN", "MONITOR"]
 
 FAR_FUTURE_TS = "toDateTime64('9999-12-31 00:00:00', 3)"
 VALIDATION_SYSTEM_ERROR = "VALIDATION_SYSTEM_ERROR"
+TRADE_VALIDATION_MIN_DATE_SQL = "toDate32('2010-01-01')"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DWD_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema" / "dwd"
+ODS_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema"
+
+DWD_TRADE_RELEVANT_TABLES = {
+    "dwd_trade_calendar",
+    "dwd_stock_eod_price",
+    "dwd_index_eod_price",
+    "dwd_future_eod_price",
+    "dwd_stock_daily_basic",
+    "dwd_stock_eod_quote_metrics",
+    "dwd_stock_adj_factor",
+    "dwd_stock_margin_trading",
+    "dwd_stock_northbound_holding",
+    "dwd_stock_chip_distribution",
+}
+
+DWS_TRADE_DATE_COLUMNS = {
+    "dws_stock_factor_wide": "trade_date",
+}
 
 
 @dataclass(frozen=True)
@@ -219,6 +241,30 @@ class QualityManager:
     def list_rules(self, layer: str, table_name: str, target_table_name: str | None = None) -> list[ValidationRule]:
         return self.build_rules(layer=layer, table_name=table_name, target_table_name=target_table_name or table_name)
 
+    def checked_count_sql(self, layer: str, table_name: str, target_table_name: str | None = None) -> str:
+        target_table_name = target_table_name or table_name
+        db_name = self.settings.database.db_name
+        qualified = self._quote_table(db_name, target_table_name)
+        validation_filter = None
+        if layer == "dwd":
+            validation_filter = self._dwd_validation_filter(table_name)
+        elif layer == "dws":
+            validation_filter = self._dws_validation_filter(table_name)
+        elif layer != "ods":
+            raise ValueError(f"Unsupported validation layer: {layer}")
+        return f"""
+            SELECT count() AS checked_count
+            FROM {qualified}
+            {self._where_sql(validation_filter=validation_filter)}
+        """
+
+    def checked_count(self, layer: str, table_name: str, target_table_name: str | None = None) -> int:
+        return self._first_int(
+            self.get_db_engine().query_df(
+                self.checked_count_sql(layer=layer, table_name=table_name, target_table_name=target_table_name)
+            )
+        )
+
     def build_rules(self, layer: str, table_name: str, target_table_name: str) -> list[ValidationRule]:
         if self.settings.database.db_type != "clickhouse":
             raise NotImplementedError("Quality validation currently supports ClickHouse SQL only")
@@ -254,8 +300,9 @@ class QualityManager:
     def _build_dwd_rules(self, table_name: str, target_table_name: str) -> list[ValidationRule]:
         db_name = self.settings.database.db_name
         qualified = self._quote_table(db_name, target_table_name)
+        validation_filter = self._dwd_validation_filter(table_name)
         rules = [
-            self._row_count_rule(qualified),
+            self._row_count_rule(qualified, validation_filter),
             self._required_columns_rule(
                 db_name,
                 target_table_name,
@@ -277,8 +324,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE event_date IS NULL OR available_trade_date IS NULL
-                       OR sys_from IS NULL OR sys_to IS NULL
+                    {self._where_sql("event_date IS NULL OR available_trade_date IS NULL OR sys_from IS NULL OR sys_to IS NULL", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -288,7 +334,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE sys_from >= sys_to
+                    {self._where_sql("sys_from >= sys_to", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -298,18 +344,19 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE source = '' OR source_table = '' OR source_batch_id = '' OR source_record_hash = ''
+                    {self._where_sql("source = '' OR source_table = '' OR source_batch_id = '' OR source_record_hash = ''", validation_filter)}
                 """,
             ),
         ]
-        rules.extend(self._dwd_open_version_rules(table_name, qualified))
-        rules.extend(self._dwd_business_rules(table_name, qualified))
+        rules.extend(self._dwd_open_version_rules(table_name, qualified, validation_filter))
+        rules.extend(self._dwd_business_rules(table_name, qualified, validation_filter))
         return rules
 
     def _build_dws_rules(self, table_name: str, target_table_name: str) -> list[ValidationRule]:
         db_name = self.settings.database.db_name
         qualified = self._quote_table(db_name, target_table_name)
-        rules = [self._row_count_rule(qualified)]
+        validation_filter = self._dws_validation_filter(table_name)
+        rules = [self._row_count_rule(qualified, validation_filter)]
         if table_name == "dws_stock_factor_wide":
             rules.extend(
                 [
@@ -322,6 +369,7 @@ class QualityManager:
                             FROM (
                                 SELECT instrument_id, trade_date
                                 FROM {qualified}
+                                {self._where_sql(validation_filter=validation_filter)}
                                 GROUP BY instrument_id, trade_date
                                 HAVING count() > 1
                             )
@@ -334,14 +382,18 @@ class QualityManager:
                         issue_count_sql=f"""
                             SELECT count() AS issue_count
                             FROM {qualified}
-                            WHERE open IS NULL OR high IS NULL OR low IS NULL OR close IS NULL OR vol IS NULL
+                            {self._where_sql("open IS NULL OR high IS NULL OR low IS NULL OR close IS NULL OR vol IS NULL", validation_filter)}
                         """,
                     ),
                     ValidationRule(
                         rule_id="dws_factor_wide_ohlc",
                         description="DWS factor wide OHLC fields must be internally consistent",
                         severity="BLOCKER",
-                        issue_count_sql=self._ohlc_issue_sql(qualified),
+                        issue_count_sql=self._ohlc_issue_sql(
+                            qualified,
+                            validation_filter,
+                            "vol > 0 OR open > 0 OR high > 0 OR low > 0",
+                        ),
                     ),
                     ValidationRule(
                         rule_id="dws_factor_wide_no_future_trade_visibility",
@@ -350,7 +402,7 @@ class QualityManager:
                         issue_count_sql=f"""
                             SELECT count() AS issue_count
                             FROM {qualified}
-                            WHERE available_trade_date < trade_date
+                            {self._where_sql("available_trade_date < trade_date", validation_filter)}
                         """,
                     ),
                 ]
@@ -358,7 +410,14 @@ class QualityManager:
         return rules
 
     @staticmethod
-    def _row_count_rule(qualified_table_name: str) -> ValidationRule:
+    def _where_sql(condition: str | None = None, validation_filter: str | None = None) -> str:
+        predicates = [predicate for predicate in [validation_filter, condition] if predicate]
+        if not predicates:
+            return ""
+        return "WHERE " + "\n                      AND ".join(f"({predicate})" for predicate in predicates)
+
+    @classmethod
+    def _row_count_rule(cls, qualified_table_name: str, validation_filter: str | None = None) -> ValidationRule:
         return ValidationRule(
             rule_id="row_count_nonzero",
             description="Validated table must not be empty",
@@ -366,6 +425,7 @@ class QualityManager:
             issue_count_sql=f"""
                 SELECT if(count() = 0, 1, 0) AS issue_count
                 FROM {qualified_table_name}
+                {cls._where_sql(validation_filter=validation_filter)}
             """,
         )
 
@@ -386,24 +446,68 @@ class QualityManager:
         )
 
     @staticmethod
-    def _ohlc_issue_sql(qualified_table_name: str) -> str:
+    def _ohlc_issue_sql(
+        qualified_table_name: str,
+        validation_filter: str | None = None,
+        activity_condition: str | None = None,
+    ) -> str:
+        ohlc_condition = "high < low OR high < open OR high < close OR low > open OR low > close"
+        if activity_condition:
+            ohlc_condition = f"({activity_condition}) AND ({ohlc_condition})"
         return f"""
             SELECT count() AS issue_count
             FROM {qualified_table_name}
-            WHERE high < low
-               OR high < open
-               OR high < close
-               OR low > open
-               OR low > close
+            {QualityManager._where_sql(ohlc_condition, validation_filter)}
         """
 
-    def _dwd_open_version_rules(self, table_name: str, qualified: str) -> list[ValidationRule]:
-        if table_name == "dwd_security_master":
-            key_columns = ["instrument_id"]
-        elif table_name == "dwd_trade_calendar":
-            key_columns = ["event_date"]
-        else:
-            key_columns = ["instrument_id", "event_date"]
+    @staticmethod
+    def _dwd_validation_filter(table_name: str) -> str | None:
+        if table_name in DWD_TRADE_RELEVANT_TABLES:
+            return f"event_date >= {TRADE_VALIDATION_MIN_DATE_SQL}"
+        return None
+
+    @staticmethod
+    def _dws_validation_filter(table_name: str) -> str | None:
+        date_column = DWS_TRADE_DATE_COLUMNS.get(table_name)
+        if date_column:
+            return f"{date_column} >= {TRADE_VALIDATION_MIN_DATE_SQL}"
+        return None
+
+    @staticmethod
+    def _load_yaml(path: Path) -> dict[str, Any]:
+        with open(path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f.read())
+
+    def _load_dwd_spec(self, table_name: str) -> dict[str, Any]:
+        for path in DWD_SCHEMA_DIR.glob("*.yaml"):
+            spec = self._load_yaml(path)
+            if spec["name"] == table_name:
+                return spec
+        raise ValueError(f"DWD table {table_name} not found")
+
+    def _load_ods_schema(self, schema_name: str) -> dict[str, Any]:
+        return self._load_yaml(ODS_SCHEMA_DIR / f"{schema_name}.yaml")
+
+    def _dwd_business_key_columns(self, table_name: str) -> list[str]:
+        spec = self._load_dwd_spec(table_name)
+        if spec.get("builder", "raw_versioned") == "security_master":
+            return ["instrument_id"]
+
+        source_schema = self._load_ods_schema(spec["source"]["schema_name"])
+        key_columns = spec.get("business_key") or source_schema.get("primary_key", [])
+        if not key_columns:
+            if table_name == "dwd_trade_calendar":
+                return ["event_date"]
+            return ["instrument_id", "event_date"]
+        return key_columns
+
+    def _dwd_open_version_rules(
+        self,
+        table_name: str,
+        qualified: str,
+        validation_filter: str | None = None,
+    ) -> list[ValidationRule]:
+        key_columns = self._dwd_business_key_columns(table_name)
 
         key_select = ", ".join(key_columns)
         partition = ", ".join(key_columns)
@@ -417,7 +521,7 @@ class QualityManager:
                     FROM (
                         SELECT {key_select}
                         FROM {qualified}
-                        WHERE sys_to = {FAR_FUTURE_TS}
+                        {self._where_sql(f"sys_to = {FAR_FUTURE_TS}", validation_filter)}
                         GROUP BY {key_select}
                         HAVING count() > 1
                     )
@@ -437,22 +541,29 @@ class QualityManager:
                             leadInFrame(sys_from, 1, {FAR_FUTURE_TS}) OVER (
                                 PARTITION BY {partition}
                                 ORDER BY sys_from, source_batch_id, source_record_hash
+                                ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                             ) AS next_sys_from
                         FROM {qualified}
+                        {self._where_sql(validation_filter=validation_filter)}
                     )
                     WHERE sys_to > next_sys_from
                 """,
             ),
         ]
 
-    def _dwd_business_rules(self, table_name: str, qualified: str) -> list[ValidationRule]:
+    def _dwd_business_rules(
+        self,
+        table_name: str,
+        qualified: str,
+        validation_filter: str | None = None,
+    ) -> list[ValidationRule]:
         rules: list[ValidationRule] = []
         if table_name in {"dwd_stock_eod_price", "dwd_index_eod_price", "dwd_future_eod_price"}:
-            rules.extend(self._market_price_rules(table_name, qualified))
+            rules.extend(self._market_price_rules(table_name, qualified, validation_filter))
         if table_name == "dwd_stock_daily_basic":
-            rules.extend(self._daily_basic_rules(qualified))
+            rules.extend(self._daily_basic_rules(qualified, validation_filter))
         if table_name == "dwd_stock_eod_quote_metrics":
-            rules.extend(self._quote_metric_rules(qualified))
+            rules.extend(self._quote_metric_rules(qualified, validation_filter))
         if table_name == "dwd_stock_adj_factor":
             rules.append(
                 ValidationRule(
@@ -462,7 +573,7 @@ class QualityManager:
                     issue_count_sql=f"""
                         SELECT count() AS issue_count
                         FROM {qualified}
-                        WHERE adj_factor <= 0
+                        {self._where_sql("adj_factor <= 0", validation_filter)}
                     """,
                 )
             )
@@ -474,22 +585,31 @@ class QualityManager:
         }:
             rules.extend(self._financial_rules(table_name, qualified))
         if table_name == "dwd_stock_margin_trading":
-            rules.extend(self._margin_rules(qualified))
+            rules.extend(self._margin_rules(qualified, validation_filter))
         if table_name == "dwd_stock_northbound_holding":
-            rules.extend(self._northbound_rules(qualified))
+            rules.extend(self._northbound_rules(qualified, validation_filter))
         if table_name == "dwd_stock_chip_distribution":
-            rules.extend(self._chip_rules(qualified))
+            rules.extend(self._chip_rules(qualified, validation_filter))
         if table_name == "dwd_security_master":
             rules.extend(self._security_master_rules(qualified))
         return rules
 
-    def _market_price_rules(self, table_name: str, qualified: str) -> list[ValidationRule]:
+    def _market_price_rules(
+        self,
+        table_name: str,
+        qualified: str,
+        validation_filter: str | None = None,
+    ) -> list[ValidationRule]:
         rules = [
             ValidationRule(
                 rule_id="market_ohlc_consistency",
                 description="Market OHLC fields must be internally consistent",
                 severity="BLOCKER",
-                issue_count_sql=self._ohlc_issue_sql(qualified),
+                issue_count_sql=self._ohlc_issue_sql(
+                    qualified,
+                    validation_filter,
+                    "vol > 0 OR open > 0 OR high > 0 OR low > 0",
+                ),
             ),
             ValidationRule(
                 rule_id="market_nonnegative_volume_amount",
@@ -498,7 +618,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE vol < 0 OR amount < 0
+                    {self._where_sql("vol < 0 OR amount < 0", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -508,8 +628,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE vol > 0
-                      AND (open <= 0 OR high <= 0 OR low <= 0 OR close <= 0 OR pre_close <= 0)
+                    {self._where_sql("vol > 0 AND (open <= 0 OR high <= 0 OR low <= 0 OR close <= 0 OR pre_close <= 0)", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -519,7 +638,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE available_trade_date < event_date
+                    {self._where_sql("available_trade_date < event_date", validation_filter)}
                 """,
             ),
         ]
@@ -532,13 +651,13 @@ class QualityManager:
                     issue_count_sql=f"""
                         SELECT count() AS issue_count
                         FROM {qualified}
-                        WHERE vol > 0 AND (settle <= 0 OR pre_settle <= 0 OR oi < 0)
+                        {self._where_sql("vol > 0 AND (settle <= 0 OR pre_settle <= 0 OR oi < 0)", validation_filter)}
                     """,
                 )
             )
         return rules
 
-    def _daily_basic_rules(self, qualified: str) -> list[ValidationRule]:
+    def _daily_basic_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
         return [
             ValidationRule(
                 rule_id="daily_basic_share_hierarchy",
@@ -547,9 +666,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE total_share < 0 OR float_share < 0 OR free_share < 0
-                       OR total_share < float_share
-                       OR float_share < free_share
+                    {self._where_sql("total_share < 0 OR float_share < 0 OR free_share < 0 OR total_share < float_share OR float_share < free_share", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -559,7 +676,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE total_mv < 0 OR circ_mv < 0 OR total_mv < circ_mv
+                    {self._where_sql("total_mv < 0 OR circ_mv < 0 OR total_mv < circ_mv", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -569,18 +686,22 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE turnover_rate < 0 OR turnover_rate_f < 0 OR volume_ratio < 0
+                    {self._where_sql("turnover_rate < 0 OR turnover_rate_f < 0 OR volume_ratio < 0", validation_filter)}
                 """,
             ),
         ]
 
-    def _quote_metric_rules(self, qualified: str) -> list[ValidationRule]:
+    def _quote_metric_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
         return [
             ValidationRule(
                 rule_id="quote_metrics_ohlc_consistency",
                 description="Quote metric OHLC fields must be internally consistent",
                 severity="BLOCKER",
-                issue_count_sql=self._ohlc_issue_sql(qualified),
+                issue_count_sql=self._ohlc_issue_sql(
+                    qualified,
+                    validation_filter,
+                    "vol > 0 OR open > 0 OR high > 0 OR low > 0",
+                ),
             ),
             ValidationRule(
                 rule_id="quote_metrics_average_price_range",
@@ -589,7 +710,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE vol > 0 AND avg_price > 0 AND (avg_price < low OR avg_price > high)
+                    {self._where_sql("vol > 0 AND avg_price > 0 AND (avg_price < low OR avg_price > high)", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -599,7 +720,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE vol < 0 OR amount < 0 OR vol_ratio < 0 OR turn_over < 0
+                    {self._where_sql("vol < 0 OR amount < 0 OR vol_ratio < 0 OR turn_over < 0", validation_filter)}
                 """,
             ),
         ]
@@ -685,7 +806,7 @@ class QualityManager:
             )
         return rules
 
-    def _margin_rules(self, qualified: str) -> list[ValidationRule]:
+    def _margin_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
         return [
             ValidationRule(
                 rule_id="margin_nonnegative_fields",
@@ -694,8 +815,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE rzye < 0 OR rqye < 0 OR rzmre < 0 OR rzche < 0
-                       OR rqyl < 0 OR rqchl < 0 OR rqmcl < 0 OR rzrqye < 0
+                    {self._where_sql("rzye < 0 OR rqye < 0 OR rzmre < 0 OR rzche < 0 OR rqyl < 0 OR rqchl < 0 OR rqmcl < 0 OR rzrqye < 0", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -705,12 +825,12 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE abs(rzrqye - rzye - rqye) > greatest(abs(rzrqye) * 0.001, 1)
+                    {self._where_sql("abs(rzrqye - rzye - rqye) > greatest(abs(rzrqye) * 0.001, 1)", validation_filter)}
                 """,
             ),
         ]
 
-    def _northbound_rules(self, qualified: str) -> list[ValidationRule]:
+    def _northbound_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
         return [
             ValidationRule(
                 rule_id="northbound_holding_bounds",
@@ -719,7 +839,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE vol < 0 OR ratio < 0 OR ratio > 100
+                    {self._where_sql("vol < 0 OR ratio < 0 OR ratio > 100", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -729,12 +849,12 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE connect_channel = ''
+                    {self._where_sql("connect_channel = ''", validation_filter)}
                 """,
             ),
         ]
 
-    def _chip_rules(self, qualified: str) -> list[ValidationRule]:
+    def _chip_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
         return [
             ValidationRule(
                 rule_id="chip_price_bounds",
@@ -743,7 +863,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE his_high < his_low
+                    {self._where_sql("his_high < his_low", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -753,8 +873,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE cost_5pct > cost_15pct OR cost_15pct > cost_50pct
-                       OR cost_50pct > cost_85pct OR cost_85pct > cost_95pct
+                    {self._where_sql("cost_5pct > cost_15pct OR cost_15pct > cost_50pct OR cost_50pct > cost_85pct OR cost_85pct > cost_95pct", validation_filter)}
                 """,
             ),
             ValidationRule(
@@ -764,7 +883,7 @@ class QualityManager:
                 issue_count_sql=f"""
                     SELECT count() AS issue_count
                     FROM {qualified}
-                    WHERE winner_rate < 0 OR winner_rate > 100
+                    {self._where_sql("winner_rate < 0 OR winner_rate > 100", validation_filter)}
                 """,
             ),
         ]

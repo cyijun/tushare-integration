@@ -207,6 +207,7 @@ FROM (
         leadInFrame(src._ingest_time, 1, {FAR_FUTURE_TS_SQL}) OVER (
             PARTITION BY {business_key_partition}
             ORDER BY src._ingest_time, src._batch_id, src._record_hash
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS _next_sys_from
         {calendar_lookup_select}
     FROM (
@@ -215,6 +216,7 @@ FROM (
             lagInFrame(src._record_hash) OVER (
                 PARTITION BY {business_key_partition}
                 ORDER BY src._ingest_time, src._batch_id, src._record_hash
+                ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
             ) AS _prev_record_hash
         FROM {db_name}.{spec['source']['table_name']} src
         WHERE {business_key_not_null}
@@ -343,6 +345,7 @@ versioned AS (
         leadInFrame(src.sys_from, 1, {FAR_FUTURE_TS_SQL}) OVER (
             PARTITION BY src.instrument_id
             ORDER BY src.sys_from, src.source_batch_id, src.source_record_hash
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS sys_to
     FROM (
         SELECT
@@ -350,6 +353,7 @@ versioned AS (
             lagInFrame(src.source_record_hash) OVER (
                 PARTITION BY src.instrument_id
                 ORDER BY src.sys_from, src.source_batch_id, src.source_record_hash
+                ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
             ) AS prev_record_hash
         FROM security_union src
     ) src

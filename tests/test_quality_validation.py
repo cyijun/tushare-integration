@@ -3,6 +3,7 @@ from unittest import mock
 
 import pandas as pd
 
+from tushare_integration.dwd import DWDManager
 from tushare_integration.quality import QualityManager, QualityValidationError, ValidationResult
 from tushare_integration.settings import TushareIntegrationSettings
 
@@ -131,6 +132,125 @@ class QualityValidationTest(unittest.TestCase):
         self.assertIn("market_ohlc_consistency", rule_ids)
         self.assertIn("market_positive_prices_when_traded", rule_ids)
         self.assertIn("dwd_single_open_version", rule_ids)
+
+    def test_checked_count_sql_uses_trade_date_scope(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        dwd_sql = manager.checked_count_sql(
+            layer="dwd",
+            table_name="dwd_stock_eod_price",
+            target_table_name="dwd_stock_eod_price_tmp",
+        )
+        dws_sql = manager.checked_count_sql(
+            layer="dws",
+            table_name="dws_stock_factor_wide",
+            target_table_name="dws_stock_factor_wide_tmp",
+        )
+        ods_sql = manager.checked_count_sql(layer="ods", table_name="daily", target_table_name="daily")
+
+        self.assertIn("event_date >= toDate32('2010-01-01')", dwd_sql)
+        self.assertIn("trade_date >= toDate32('2010-01-01')", dws_sql)
+        self.assertNotIn("2010-01-01", ods_sql)
+
+    def test_market_ohlc_consistency_only_checks_active_price_rows(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dwd",
+                table_name="dwd_future_eod_price",
+                target_table_name="dwd_future_eod_price_tmp",
+            )
+        }
+
+        self.assertIn("vol > 0 OR open > 0 OR high > 0 OR low > 0", rules["market_ohlc_consistency"].issue_count_sql)
+        self.assertIn("high < low OR high < open OR high < close", rules["market_ohlc_consistency"].issue_count_sql)
+
+    def test_dwd_trade_rules_are_limited_to_rows_since_2010(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dwd",
+                table_name="dwd_stock_eod_price",
+                target_table_name="dwd_stock_eod_price_tmp",
+            )
+        }
+
+        self.assertIn("event_date >= toDate32('2010-01-01')", rules["row_count_nonzero"].issue_count_sql)
+        self.assertIn("event_date >= toDate32('2010-01-01')", rules["dwd_single_open_version"].issue_count_sql)
+        self.assertIn("event_date >= toDate32('2010-01-01')", rules["market_ohlc_consistency"].issue_count_sql)
+        self.assertNotIn("2010-01-01", rules["required_columns_exist"].issue_count_sql)
+
+    def test_dws_trade_rules_are_limited_to_trade_dates_since_2010(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dws",
+                table_name="dws_stock_factor_wide",
+                target_table_name="dws_stock_factor_wide_tmp",
+            )
+        }
+
+        self.assertIn("trade_date >= toDate32('2010-01-01')", rules["row_count_nonzero"].issue_count_sql)
+        self.assertIn("trade_date >= toDate32('2010-01-01')", rules["dws_factor_wide_unique_key"].issue_count_sql)
+        self.assertIn("trade_date >= toDate32('2010-01-01')", rules["dws_factor_wide_ohlc"].issue_count_sql)
+
+    def test_non_trade_dwd_rules_are_not_date_limited(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dwd",
+                table_name="dwd_stock_income",
+                target_table_name="dwd_stock_income_tmp",
+            )
+        }
+
+        self.assertNotIn("2010-01-01", rules["financial_no_placeholder_dates"].issue_count_sql)
+
+    def test_dwd_open_version_rule_uses_source_business_key(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        income_rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dwd",
+                table_name="dwd_stock_income",
+                target_table_name="dwd_stock_income_tmp",
+            )
+        }
+        calendar_rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dwd",
+                table_name="dwd_trade_calendar",
+                target_table_name="dwd_trade_calendar_tmp",
+            )
+        }
+
+        self.assertIn("report_type", income_rules["dwd_single_open_version"].issue_count_sql)
+        self.assertIn("update_flag", income_rules["dwd_single_open_version"].issue_count_sql)
+        self.assertIn(
+            "GROUP BY ts_code, ann_date, f_ann_date, end_date, report_type, update_flag",
+            income_rules["dwd_single_open_version"].issue_count_sql,
+        )
+        self.assertIn(
+            "ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING",
+            income_rules["dwd_no_overlapping_versions"].issue_count_sql,
+        )
+        self.assertIn("GROUP BY cal_date, exchange", calendar_rules["dwd_single_open_version"].issue_count_sql)
+        self.assertNotIn("GROUP BY event_date", calendar_rules["dwd_single_open_version"].issue_count_sql)
+
+    def test_dwd_version_sql_uses_full_window_frame(self):
+        sql = DWDManager().render_sync_sql("dwd_stock_income")
+
+        self.assertIn("ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING", sql)
 
 
 if __name__ == "__main__":
