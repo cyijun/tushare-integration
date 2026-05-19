@@ -582,8 +582,11 @@ class QualityManager:
             "dwd_stock_income",
             "dwd_stock_balance_sheet",
             "dwd_stock_cashflow",
+            "dwd_stock_dividend",
         }:
             rules.extend(self._financial_rules(table_name, qualified))
+        if table_name == "dwd_stock_dividend":
+            rules.extend(self._dividend_rules(qualified, validation_filter))
         if table_name == "dwd_stock_margin_trading":
             rules.extend(self._margin_rules(qualified, validation_filter))
         if table_name == "dwd_stock_northbound_holding":
@@ -805,6 +808,38 @@ class QualityManager:
                 )
             )
         return rules
+
+    def _dividend_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
+        nonnegative_condition = (
+            "stk_div < 0 OR stk_bo_rate < 0 OR stk_co_rate < 0 "
+            "OR cash_div < 0 OR cash_div_tax < 0 OR base_share < 0"
+        )
+        action_date_condition = (
+            "record_date < ann_date OR ex_date < ann_date OR pay_date < ann_date "
+            "OR div_listdate < ann_date OR imp_ann_date < ann_date"
+        )
+        return [
+            ValidationRule(
+                rule_id="dividend_nonnegative_values",
+                description="Dividend rates and cash amounts must be nonnegative",
+                severity="BLOCKER",
+                issue_count_sql=f"""
+                    SELECT count() AS issue_count
+                    FROM {qualified}
+                    {self._where_sql(nonnegative_condition, validation_filter)}
+                """,
+            ),
+            ValidationRule(
+                rule_id="dividend_action_dates_not_before_announcement",
+                description="Dividend action dates must not precede the first announcement date",
+                severity="BLOCKER",
+                issue_count_sql=f"""
+                    SELECT count() AS issue_count
+                    FROM {qualified}
+                    {self._where_sql(action_date_condition, validation_filter)}
+                """,
+            ),
+        ]
 
     def _margin_rules(self, qualified: str, validation_filter: str | None = None) -> list[ValidationRule]:
         return [

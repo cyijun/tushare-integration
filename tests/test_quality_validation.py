@@ -252,6 +252,40 @@ class QualityValidationTest(unittest.TestCase):
 
         self.assertIn("ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING", sql)
 
+    def test_dwd_dividend_sql_uses_source_key_and_announcement_visibility(self):
+        sql = DWDManager().render_sync_sql("dwd_stock_dividend")
+        availability_expr = (
+            "coalesce(src.imp_ann_date, src.ann_date, src.record_date, "
+            "src.ex_date, src.pay_date, src.div_listdate, src.end_date)"
+        )
+
+        self.assertIn("FROM default.dividend_raw src", sql)
+        self.assertIn("PARTITION BY src.`ts_code`, src.`end_date`, src.`ann_date`, src.`div_proc`", sql)
+        self.assertIn("lagInFrame(src._record_hash)", sql)
+        self.assertIn(availability_expr, sql)
+        self.assertIn("coalesce(calendar_map.next_trade_date, src.imp_ann_date", sql)
+
+    def test_dwd_dividend_quality_rules_include_pit_and_domain_checks(self):
+        manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
+
+        rules = {
+            rule.rule_id: rule
+            for rule in manager.list_rules(
+                layer="dwd",
+                table_name="dwd_stock_dividend",
+                target_table_name="dwd_stock_dividend_tmp",
+            )
+        }
+
+        self.assertIn("financial_no_placeholder_dates", rules)
+        self.assertIn("dividend_nonnegative_values", rules)
+        self.assertIn("dividend_action_dates_not_before_announcement", rules)
+        self.assertIn(
+            "GROUP BY ts_code, end_date, ann_date, div_proc",
+            rules["dwd_single_open_version"].issue_count_sql,
+        )
+        self.assertIn("cash_div_tax < 0", rules["dividend_nonnegative_values"].issue_count_sql)
+
 
 if __name__ == "__main__":
     unittest.main()

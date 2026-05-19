@@ -1,0 +1,22 @@
+id: 2018
+name: dwd_stock_dividend
+comment: 股票分红送股标准层
+builder: raw_versioned
+source:
+  table_name: dividend_raw
+  schema_name: stock/financial/dividend
+instrument_type: stock
+instrument_id_expr: "concat('stock:', src.ts_code)"
+source_code_expr: src.ts_code
+exchange_expr: "arrayElement(splitByChar('.', assumeNotNull(src.ts_code)), 2)"
+event_date_expr: src.end_date
+calendar_date_expr: coalesce(src.imp_ann_date, src.ann_date, src.record_date, src.ex_date, src.pay_date, src.div_listdate, src.end_date)
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.imp_ann_date, src.ann_date, src.record_date, src.ex_date, src.pay_date, src.div_listdate, src.end_date)
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_stock_dividend_idx
+    columns:
+      - instrument_id
+      - event_date
+      - sys_from

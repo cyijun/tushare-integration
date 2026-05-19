@@ -279,7 +279,7 @@
 - `income`
 - `forecast`
 - `express`
-- `dividend`
+- `dividend`（已补充 `dwd_stock_dividend` 标准层，按公告可用日和版本窗口固化）
 - `fina_audit`
 - `fina_indicator`
 - `fina_mainbz`
@@ -374,7 +374,7 @@
 
 - `balancesheet`
 - `fina_indicator`
-- `dividend`
+- `dividend`（已补充 `dwd_stock_dividend` 标准层）
 - `repurchase`
 - `stk_holdernumber`
 - `index_member`
