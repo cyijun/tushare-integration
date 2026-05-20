@@ -265,6 +265,64 @@ class QualityValidationTest(unittest.TestCase):
         self.assertIn(availability_expr, sql)
         self.assertIn("coalesce(calendar_map.next_trade_date, src.imp_ann_date", sql)
 
+    def test_dwd_dc_concept_sql_uses_theme_trade_key_and_no_instrument(self):
+        manager = DWDManager()
+        schema = manager.build_schema(manager.load_spec("dwd_dc_concept"))
+        sql = manager.render_sync_sql("dwd_dc_concept")
+
+        columns = {column["name"]: column for column in schema["columns"]}
+        column_names = set(columns)
+        self.assertNotIn("instrument_id", column_names)
+        self.assertNotIn("nullable", columns["theme_code"])
+        self.assertNotIn("nullable", columns["trade_date"])
+        self.assertIn("FROM default.dc_concept_raw src", sql)
+        self.assertIn("PARTITION BY src.`theme_code`, src.`trade_date`", sql)
+        self.assertIn("lagInFrame(src._record_hash)", sql)
+        self.assertIn("coalesce(calendar_map.next_trade_date, src.trade_date)", sql)
+
+    def test_dwd_dc_concept_cons_sql_uses_stock_theme_trade_key(self):
+        manager = DWDManager()
+        schema = manager.build_schema(manager.load_spec("dwd_dc_concept_cons"))
+        columns = {column["name"]: column for column in schema["columns"]}
+        sql = manager.render_sync_sql("dwd_dc_concept_cons")
+
+        self.assertNotIn("nullable", columns["ts_code"])
+        self.assertNotIn("nullable", columns["theme_code"])
+        self.assertNotIn("nullable", columns["trade_date"])
+        self.assertIn("FROM default.dc_concept_cons_raw src", sql)
+        self.assertIn("concat('stock:', src.ts_code) AS `instrument_id`", sql)
+        self.assertIn("PARTITION BY src.`ts_code`, src.`trade_date`, src.`theme_code`", sql)
+        self.assertIn("lagInFrame(src._record_hash)", sql)
+
+    def test_dwd_dc_index_sql_uses_board_trade_key_and_no_instrument(self):
+        manager = DWDManager()
+        schema = manager.build_schema(manager.load_spec("dwd_dc_index"))
+        sql = manager.render_sync_sql("dwd_dc_index")
+
+        columns = {column["name"]: column for column in schema["columns"]}
+        column_names = set(columns)
+        self.assertNotIn("instrument_id", column_names)
+        self.assertNotIn("nullable", columns["ts_code"])
+        self.assertNotIn("nullable", columns["trade_date"])
+        self.assertIn("FROM default.dc_index_raw src", sql)
+        self.assertIn("PARTITION BY src.`ts_code`, src.`trade_date`", sql)
+        self.assertIn("lagInFrame(src._record_hash)", sql)
+        self.assertIn("coalesce(calendar_map.next_trade_date, src.trade_date)", sql)
+
+    def test_dwd_dc_member_sql_uses_stock_board_trade_key(self):
+        manager = DWDManager()
+        schema = manager.build_schema(manager.load_spec("dwd_dc_member"))
+        columns = {column["name"]: column for column in schema["columns"]}
+        sql = manager.render_sync_sql("dwd_dc_member")
+
+        self.assertNotIn("nullable", columns["trade_date"])
+        self.assertNotIn("nullable", columns["ts_code"])
+        self.assertNotIn("nullable", columns["con_code"])
+        self.assertIn("FROM default.dc_member_raw src", sql)
+        self.assertIn("concat('stock:', src.con_code) AS `instrument_id`", sql)
+        self.assertIn("PARTITION BY src.`trade_date`, src.`ts_code`, src.`con_code`", sql)
+        self.assertIn("lagInFrame(src._record_hash)", sql)
+
     def test_dwd_dividend_quality_rules_include_pit_and_domain_checks(self):
         manager = QualityManager(settings=self._settings(), db_engine=DummyDB())
 

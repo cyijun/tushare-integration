@@ -36,6 +36,10 @@ DWD_TRADE_RELEVANT_TABLES = {
     "dwd_stock_margin_trading",
     "dwd_stock_northbound_holding",
     "dwd_stock_chip_distribution",
+    "dwd_dc_index",
+    "dwd_dc_member",
+    "dwd_dc_concept",
+    "dwd_dc_concept_cons",
 }
 
 DWS_TRADE_DATE_COLUMNS = {

@@ -1,0 +1,19 @@
+id: 2021
+name: dwd_dc_index
+comment: 东方财富板块指数标准层
+builder: raw_versioned
+with_instrument: false
+source:
+  table_name: dc_index_raw
+  schema_name: stock/market/dc_index
+event_date_expr: src.trade_date
+calendar_date_expr: src.trade_date
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.trade_date)
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_dc_index_idx
+    columns:
+      - ts_code
+      - event_date
+      - sys_from

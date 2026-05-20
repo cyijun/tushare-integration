@@ -1,0 +1,19 @@
+id: 2019
+name: dwd_dc_concept
+comment: 东方财富题材标准层
+builder: raw_versioned
+with_instrument: false
+source:
+  table_name: dc_concept_raw
+  schema_name: stock/market/dc_concept
+event_date_expr: src.trade_date
+calendar_date_expr: src.trade_date
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.trade_date)
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_dc_concept_idx
+    columns:
+      - theme_code
+      - event_date
+      - sys_from

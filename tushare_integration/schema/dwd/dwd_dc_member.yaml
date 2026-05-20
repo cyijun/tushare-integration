@@ -1,0 +1,23 @@
+id: 2022
+name: dwd_dc_member
+comment: 东方财富板块成分标准层
+builder: raw_versioned
+source:
+  table_name: dc_member_raw
+  schema_name: stock/market/dc_member
+instrument_type: stock
+instrument_id_expr: "concat('stock:', src.con_code)"
+source_code_expr: src.con_code
+exchange_expr: "arrayElement(splitByChar('.', assumeNotNull(src.con_code)), 2)"
+event_date_expr: src.trade_date
+calendar_date_expr: src.trade_date
+available_trade_date_expr: coalesce(calendar_map.next_trade_date, src.trade_date)
+partition_key:
+  - toYear(available_trade_date)
+indexes:
+  - name: dwd_dc_member_idx
+    columns:
+      - instrument_id
+      - ts_code
+      - event_date
+      - sys_from

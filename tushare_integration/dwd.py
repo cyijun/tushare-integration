@@ -60,6 +60,15 @@ def _nullable_copy(column: dict[str, Any]) -> dict[str, Any]:
     return copied_column
 
 
+def _source_column_copy(column: dict[str, Any], business_key: set[str]) -> dict[str, Any]:
+    if column["name"] not in business_key:
+        return _nullable_copy(column)
+
+    copied_column = deepcopy(column)
+    copied_column.pop("nullable", None)
+    return copied_column
+
+
 class DWDManager:
     def __init__(self):
         self.settings = TushareIntegrationSettings.model_validate(
@@ -103,9 +112,10 @@ class DWDManager:
             return schema
 
         source_schema = self.load_source_schema(spec["source"]["schema_name"])
+        business_key = set(spec.get("business_key") or source_schema.get("primary_key", []))
         source_column_excludes = set(spec.get("source_column_excludes", []))
         source_columns = [
-            _nullable_copy(column)
+            _source_column_copy(column, business_key)
             for column in source_schema["columns"]
             if column["name"] not in source_column_excludes
         ]
