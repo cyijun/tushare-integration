@@ -45,4 +45,4 @@ log_date_format = "%Y-%m-%d %H:%M:%S"
 filterwarnings = ["ignore::pydantic.PydanticDeprecatedSince20"]
 
 [tool.setuptools.packages.find]
-include = ["tushare_integration"]
+include = ["tushare_integration*"]

@@ -1,0 +1,1858 @@
+id: 3002
+name: dws_stock_factor_wide_matrix
+comment: 股票因子矩阵宽表汇总层
+builder: stock_factor_wide_matrix
+schema:
+  comment: 股票因子矩阵宽表汇总层
+  primary_key: []
+  partition_key:
+    - toYear(available_trade_date)
+  indexes:
+    - name: dws_stock_factor_wide_matrix_idx
+      columns:
+        - instrument_id
+        - trade_date
+  columns:
+    - name: instrument_id
+      data_type: str
+      length: 64
+      comment: 统一证券ID
+    - name: instrument_type
+      data_type: str
+      length: 32
+      comment: 证券类型
+    - name: exchange
+      data_type: str
+      length: 32
+      comment: 交易所
+    - name: source_code
+      data_type: str
+      length: 64
+      comment: 源侧证券代码
+    - name: event_date
+      data_type: date
+      comment: 业务归属日期
+    - name: trade_date
+      data_type: date
+      comment: 交易日期
+    - name: available_trade_date
+      data_type: date
+      comment: 最早可用交易日
+    - name: a158_beta10
+      data_type: float
+      nullable: true
+      comment: Alpha158_趋势斜率10日
+    - name: a158_beta20
+      data_type: float
+      nullable: true
+      comment: Alpha158_趋势斜率20日
+    - name: a158_beta30
+      data_type: float
+      nullable: true
+      comment: Alpha158_趋势斜率30日
+    - name: a158_beta5
+      data_type: float
+      nullable: true
+      comment: Alpha158_趋势斜率5日
+    - name: a158_beta60
+      data_type: float
+      nullable: true
+      comment: Alpha158_趋势斜率60日
+    - name: a158_cntd10
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌差10日
+    - name: a158_cntd20
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌差20日
+    - name: a158_cntd30
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌差30日
+    - name: a158_cntd5
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌差5日
+    - name: a158_cntd60
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌差60日
+    - name: a158_cntn10
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌比例10日
+    - name: a158_cntn20
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌比例20日
+    - name: a158_cntn30
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌比例30日
+    - name: a158_cntn5
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌比例5日
+    - name: a158_cntn60
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌比例60日
+    - name: a158_cntp10
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨比例10日
+    - name: a158_cntp20
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨比例20日
+    - name: a158_cntp30
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨比例30日
+    - name: a158_cntp5
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨比例5日
+    - name: a158_cntp60
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨比例60日
+    - name: a158_cord10
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌量相关10日
+    - name: a158_cord20
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌量相关20日
+    - name: a158_cord30
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌量相关30日
+    - name: a158_cord5
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌量相关5日
+    - name: a158_cord60
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌量相关60日
+    - name: a158_corr10
+      data_type: float
+      nullable: true
+      comment: Alpha158_价量相关10日
+    - name: a158_corr20
+      data_type: float
+      nullable: true
+      comment: Alpha158_价量相关20日
+    - name: a158_corr30
+      data_type: float
+      nullable: true
+      comment: Alpha158_价量相关30日
+    - name: a158_corr5
+      data_type: float
+      nullable: true
+      comment: Alpha158_价量相关5日
+    - name: a158_corr60
+      data_type: float
+      nullable: true
+      comment: Alpha158_价量相关60日
+    - name: a158_high0
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高比
+    - name: a158_imax10
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高位置10日
+    - name: a158_imax20
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高位置20日
+    - name: a158_imax30
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高位置30日
+    - name: a158_imax5
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高位置5日
+    - name: a158_imax60
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高位置60日
+    - name: a158_imin10
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低位置10日
+    - name: a158_imin20
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低位置20日
+    - name: a158_imin30
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低位置30日
+    - name: a158_imin5
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低位置5日
+    - name: a158_imin60
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低位置60日
+    - name: a158_imxd10
+      data_type: float
+      nullable: true
+      comment: Alpha158_极值距离10日
+    - name: a158_imxd20
+      data_type: float
+      nullable: true
+      comment: Alpha158_极值距离20日
+    - name: a158_imxd30
+      data_type: float
+      nullable: true
+      comment: Alpha158_极值距离30日
+    - name: a158_imxd5
+      data_type: float
+      nullable: true
+      comment: Alpha158_极值距离5日
+    - name: a158_imxd60
+      data_type: float
+      nullable: true
+      comment: Alpha158_极值距离60日
+    - name: a158_klen
+      data_type: float
+      nullable: true
+      comment: Alpha158_K线长度
+    - name: a158_klow
+      data_type: float
+      nullable: true
+      comment: Alpha158_下影线
+    - name: a158_klow2
+      data_type: float
+      nullable: true
+      comment: Alpha158_下影线比
+    - name: a158_kmid
+      data_type: float
+      nullable: true
+      comment: Alpha158_K线中点
+    - name: a158_kmid2
+      data_type: float
+      nullable: true
+      comment: Alpha158_K线中点比
+    - name: a158_ksft
+      data_type: float
+      nullable: true
+      comment: Alpha158_K线偏移
+    - name: a158_ksft2
+      data_type: float
+      nullable: true
+      comment: Alpha158_K线偏移比
+    - name: a158_kup
+      data_type: float
+      nullable: true
+      comment: Alpha158_上影线
+    - name: a158_kup2
+      data_type: float
+      nullable: true
+      comment: Alpha158_上影线比
+    - name: a158_low0
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低比
+    - name: a158_ma10
+      data_type: float
+      nullable: true
+      comment: Alpha158_均线10日
+    - name: a158_ma20
+      data_type: float
+      nullable: true
+      comment: Alpha158_均线20日
+    - name: a158_ma30
+      data_type: float
+      nullable: true
+      comment: Alpha158_均线30日
+    - name: a158_ma5
+      data_type: float
+      nullable: true
+      comment: Alpha158_均线5日
+    - name: a158_ma60
+      data_type: float
+      nullable: true
+      comment: Alpha158_均线60日
+    - name: a158_max10
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高价10日
+    - name: a158_max20
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高价20日
+    - name: a158_max30
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高价30日
+    - name: a158_max5
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高价5日
+    - name: a158_max60
+      data_type: float
+      nullable: true
+      comment: Alpha158_最高价60日
+    - name: a158_min10
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低价10日
+    - name: a158_min20
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低价20日
+    - name: a158_min30
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低价30日
+    - name: a158_min5
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低价5日
+    - name: a158_min60
+      data_type: float
+      nullable: true
+      comment: Alpha158_最低价60日
+    - name: a158_open0
+      data_type: float
+      nullable: true
+      comment: Alpha158_开盘比
+    - name: a158_qtld10
+      data_type: float
+      nullable: true
+      comment: Alpha158_下分位10日
+    - name: a158_qtld20
+      data_type: float
+      nullable: true
+      comment: Alpha158_下分位20日
+    - name: a158_qtld30
+      data_type: float
+      nullable: true
+      comment: Alpha158_下分位30日
+    - name: a158_qtld5
+      data_type: float
+      nullable: true
+      comment: Alpha158_下分位5日
+    - name: a158_qtld60
+      data_type: float
+      nullable: true
+      comment: Alpha158_下分位60日
+    - name: a158_qtlu10
+      data_type: float
+      nullable: true
+      comment: Alpha158_上分位10日
+    - name: a158_qtlu20
+      data_type: float
+      nullable: true
+      comment: Alpha158_上分位20日
+    - name: a158_qtlu30
+      data_type: float
+      nullable: true
+      comment: Alpha158_上分位30日
+    - name: a158_qtlu5
+      data_type: float
+      nullable: true
+      comment: Alpha158_上分位5日
+    - name: a158_qtlu60
+      data_type: float
+      nullable: true
+      comment: Alpha158_上分位60日
+    - name: a158_rank10
+      data_type: float
+      nullable: true
+      comment: Alpha158_时序排名10日
+    - name: a158_rank20
+      data_type: float
+      nullable: true
+      comment: Alpha158_时序排名20日
+    - name: a158_rank30
+      data_type: float
+      nullable: true
+      comment: Alpha158_时序排名30日
+    - name: a158_rank5
+      data_type: float
+      nullable: true
+      comment: Alpha158_时序排名5日
+    - name: a158_rank60
+      data_type: float
+      nullable: true
+      comment: Alpha158_时序排名60日
+    - name: a158_resi10
+      data_type: float
+      nullable: true
+      comment: Alpha158_残差10日
+    - name: a158_resi20
+      data_type: float
+      nullable: true
+      comment: Alpha158_残差20日
+    - name: a158_resi30
+      data_type: float
+      nullable: true
+      comment: Alpha158_残差30日
+    - name: a158_resi5
+      data_type: float
+      nullable: true
+      comment: Alpha158_残差5日
+    - name: a158_resi60
+      data_type: float
+      nullable: true
+      comment: Alpha158_残差60日
+    - name: a158_roc10
+      data_type: float
+      nullable: true
+      comment: Alpha158_ROC10日
+    - name: a158_roc20
+      data_type: float
+      nullable: true
+      comment: Alpha158_ROC20日
+    - name: a158_roc30
+      data_type: float
+      nullable: true
+      comment: Alpha158_ROC30日
+    - name: a158_roc5
+      data_type: float
+      nullable: true
+      comment: Alpha158_ROC5日
+    - name: a158_roc60
+      data_type: float
+      nullable: true
+      comment: Alpha158_ROC60日
+    - name: a158_rsqr10
+      data_type: float
+      nullable: true
+      comment: Alpha158_R方10日
+    - name: a158_rsqr20
+      data_type: float
+      nullable: true
+      comment: Alpha158_R方20日
+    - name: a158_rsqr30
+      data_type: float
+      nullable: true
+      comment: Alpha158_R方30日
+    - name: a158_rsqr5
+      data_type: float
+      nullable: true
+      comment: Alpha158_R方5日
+    - name: a158_rsqr60
+      data_type: float
+      nullable: true
+      comment: Alpha158_R方60日
+    - name: a158_rsv10
+      data_type: float
+      nullable: true
+      comment: Alpha158_RSV10日
+    - name: a158_rsv20
+      data_type: float
+      nullable: true
+      comment: Alpha158_RSV20日
+    - name: a158_rsv30
+      data_type: float
+      nullable: true
+      comment: Alpha158_RSV30日
+    - name: a158_rsv5
+      data_type: float
+      nullable: true
+      comment: Alpha158_RSV5日
+    - name: a158_rsv60
+      data_type: float
+      nullable: true
+      comment: Alpha158_RSV60日
+    - name: a158_std10
+      data_type: float
+      nullable: true
+      comment: Alpha158_波动率10日
+    - name: a158_std20
+      data_type: float
+      nullable: true
+      comment: Alpha158_波动率20日
+    - name: a158_std30
+      data_type: float
+      nullable: true
+      comment: Alpha158_波动率30日
+    - name: a158_std5
+      data_type: float
+      nullable: true
+      comment: Alpha158_波动率5日
+    - name: a158_std60
+      data_type: float
+      nullable: true
+      comment: Alpha158_波动率60日
+    - name: a158_sumd10
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌幅差10日
+    - name: a158_sumd20
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌幅差20日
+    - name: a158_sumd30
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌幅差30日
+    - name: a158_sumd5
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌幅差5日
+    - name: a158_sumd60
+      data_type: float
+      nullable: true
+      comment: Alpha158_涨跌幅差60日
+    - name: a158_sumn10
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌幅度10日
+    - name: a158_sumn20
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌幅度20日
+    - name: a158_sumn30
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌幅度30日
+    - name: a158_sumn5
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌幅度5日
+    - name: a158_sumn60
+      data_type: float
+      nullable: true
+      comment: Alpha158_下跌幅度60日
+    - name: a158_sump10
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨幅度10日
+    - name: a158_sump20
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨幅度20日
+    - name: a158_sump30
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨幅度30日
+    - name: a158_sump5
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨幅度5日
+    - name: a158_sump60
+      data_type: float
+      nullable: true
+      comment: Alpha158_上涨幅度60日
+    - name: a158_vma10
+      data_type: float
+      nullable: true
+      comment: Alpha158_量均线10日
+    - name: a158_vma20
+      data_type: float
+      nullable: true
+      comment: Alpha158_量均线20日
+    - name: a158_vma30
+      data_type: float
+      nullable: true
+      comment: Alpha158_量均线30日
+    - name: a158_vma5
+      data_type: float
+      nullable: true
+      comment: Alpha158_量均线5日
+    - name: a158_vma60
+      data_type: float
+      nullable: true
+      comment: Alpha158_量均线60日
+    - name: a158_vstd10
+      data_type: float
+      nullable: true
+      comment: Alpha158_量波动10日
+    - name: a158_vstd20
+      data_type: float
+      nullable: true
+      comment: Alpha158_量波动20日
+    - name: a158_vstd30
+      data_type: float
+      nullable: true
+      comment: Alpha158_量波动30日
+    - name: a158_vstd5
+      data_type: float
+      nullable: true
+      comment: Alpha158_量波动5日
+    - name: a158_vstd60
+      data_type: float
+      nullable: true
+      comment: Alpha158_量波动60日
+    - name: a158_vsumd10
+      data_type: float
+      nullable: true
+      comment: Alpha158_量涨跌差10日
+    - name: a158_vsumd20
+      data_type: float
+      nullable: true
+      comment: Alpha158_量涨跌差20日
+    - name: a158_vsumd30
+      data_type: float
+      nullable: true
+      comment: Alpha158_量涨跌差30日
+    - name: a158_vsumd5
+      data_type: float
+      nullable: true
+      comment: Alpha158_量涨跌差5日
+    - name: a158_vsumd60
+      data_type: float
+      nullable: true
+      comment: Alpha158_量涨跌差60日
+    - name: a158_vsumn10
+      data_type: float
+      nullable: true
+      comment: Alpha158_量减比例10日
+    - name: a158_vsumn20
+      data_type: float
+      nullable: true
+      comment: Alpha158_量减比例20日
+    - name: a158_vsumn30
+      data_type: float
+      nullable: true
+      comment: Alpha158_量减比例30日
+    - name: a158_vsumn5
+      data_type: float
+      nullable: true
+      comment: Alpha158_量减比例5日
+    - name: a158_vsumn60
+      data_type: float
+      nullable: true
+      comment: Alpha158_量减比例60日
+    - name: a158_vsump10
+      data_type: float
+      nullable: true
+      comment: Alpha158_量增比例10日
+    - name: a158_vsump20
+      data_type: float
+      nullable: true
+      comment: Alpha158_量增比例20日
+    - name: a158_vsump30
+      data_type: float
+      nullable: true
+      comment: Alpha158_量增比例30日
+    - name: a158_vsump5
+      data_type: float
+      nullable: true
+      comment: Alpha158_量增比例5日
+    - name: a158_vsump60
+      data_type: float
+      nullable: true
+      comment: Alpha158_量增比例60日
+    - name: a158_vwap0
+      data_type: float
+      nullable: true
+      comment: Alpha158_VWAP比
+    - name: a158_wvma10
+      data_type: float
+      nullable: true
+      comment: Alpha158_加权量波动10日
+    - name: a158_wvma20
+      data_type: float
+      nullable: true
+      comment: Alpha158_加权量波动20日
+    - name: a158_wvma30
+      data_type: float
+      nullable: true
+      comment: Alpha158_加权量波动30日
+    - name: a158_wvma5
+      data_type: float
+      nullable: true
+      comment: Alpha158_加权量波动5日
+    - name: a158_wvma60
+      data_type: float
+      nullable: true
+      comment: Alpha158_加权量波动60日
+    - name: ac_amt_impact_decay
+      data_type: float
+      nullable: true
+      comment: 成交额冲击衰减
+    - name: ac_cov_px_vol_short
+      data_type: float
+      nullable: true
+      comment: 短窗量价协方差
+    - name: ac_hl_amp_vol_link
+      data_type: float
+      nullable: true
+      comment: 振幅与成交量联动
+    - name: ac_hl_range_position_delta
+      data_type: float
+      nullable: true
+      comment: 高低区间位置变化
+    - name: ac_mom_vol_mix
+      data_type: float
+      nullable: true
+      comment: 动量波动联合
+    - name: ac_oc_spread_norm
+      data_type: float
+      nullable: true
+      comment: 开收盘价差标准化
+    - name: ac_rankcorr_px_vol
+      data_type: float
+      nullable: true
+      comment: 价量秩相关短窗
+    - name: ac_ret_skew_roll
+      data_type: float
+      nullable: true
+      comment: 滚动收益偏度
+    - name: ac_ts_rank_ret_short
+      data_type: float
+      nullable: true
+      comment: 短期收益时序排名
+    - name: ac_ts_rank_vol_short
+      data_type: float
+      nullable: true
+      comment: 短期成交量时序排名
+    - name: ac_vol_cluster_ratio
+      data_type: float
+      nullable: true
+      comment: 波动聚集短中窗比
+    - name: ac_vwap_bias
+      data_type: float
+      nullable: true
+      comment: VWAP偏离
+    - name: cs_amp_rank
+      data_type: float
+      nullable: true
+      comment: 振幅时序排名
+    - name: cs_close_vs_mean5
+      data_type: float
+      nullable: true
+      comment: 收盘偏离5日均值
+    - name: cs_ret5_rank
+      data_type: float
+      nullable: true
+      comment: 5日收益时序排名
+    - name: cs_turnover_rank
+      data_type: float
+      nullable: true
+      comment: 换手率时序排名
+    - name: cs_vol_rank
+      data_type: float
+      nullable: true
+      comment: 成交量时序排名
+    - name: cs_volume_trend
+      data_type: float
+      nullable: true
+      comment: 成交量趋势斜率
+    - name: cb_indneu_mom_20
+      data_type: float
+      nullable: true
+      comment: 行业中性短动量20
+    - name: cb_indneu_vol_20
+      data_type: float
+      nullable: true
+      comment: 行业中性波动20
+    - name: cb_turn_shock_recover_5_20
+      data_type: float
+      nullable: true
+      comment: 换手冲击恢复5_20
+    - name: cb_vol_price_asym
+      data_type: float
+      nullable: true
+      comment: 缩量涨放量跌不对称
+    - name: liq_amihud_20
+      data_type: float
+      nullable: true
+      comment: Amihud非流动性20日
+    - name: liq_amt_concentration
+      data_type: float
+      nullable: true
+      comment: 成交额集中度
+    - name: liq_large_amount_ratio
+      data_type: float
+      nullable: true
+      comment: 大额成交占比
+    - name: liq_turnover_accel
+      data_type: float
+      nullable: true
+      comment: 换手率加速
+    - name: liq_volume_cv_20
+      data_type: float
+      nullable: true
+      comment: 成交量变异系数20日
+    - name: liq_zero_trade_ratio_20
+      data_type: float
+      nullable: true
+      comment: 零交易日占比20
+    - name: ms_body_ratio
+      data_type: float
+      nullable: true
+      comment: 实体占比
+    - name: ms_gap_fill_speed
+      data_type: float
+      nullable: true
+      comment: 跳空回补速度
+    - name: ms_intraday_pos
+      data_type: float
+      nullable: true
+      comment: 日内收盘位置
+    - name: ms_lower_shadow
+      data_type: float
+      nullable: true
+      comment: 下影线占比
+    - name: ms_open_gap
+      data_type: float
+      nullable: true
+      comment: 开盘跳空
+    - name: ms_upper_shadow
+      data_type: float
+      nullable: true
+      comment: 上影线占比
+    - name: pv_corr_ret_vol_10
+      data_type: float
+      nullable: true
+      comment: 收益量相关性10日
+    - name: pv_obv_slope
+      data_type: float
+      nullable: true
+      comment: OBV斜率10日
+    - name: pv_price_vol_diverge
+      data_type: float
+      nullable: true
+      comment: 量价背离
+    - name: pv_smart_money
+      data_type: float
+      nullable: true
+      comment: 聪明资金指标
+    - name: pv_vol_breakout
+      data_type: float
+      nullable: true
+      comment: 成交量突破
+    - name: pv_vol_price_trend
+      data_type: float
+      nullable: true
+      comment: 量价趋势相关20日
+    - name: qb_amp_mean_10
+      data_type: float
+      nullable: true
+      comment: 10日振幅均值
+    - name: qb_amp_mean_20
+      data_type: float
+      nullable: true
+      comment: 20日振幅均值
+    - name: qb_amt_trend_20
+      data_type: float
+      nullable: true
+      comment: 20日成交额趋势
+    - name: qb_boll_pos_20
+      data_type: float
+      nullable: true
+      comment: 布林带位置20日
+    - name: qb_corr_px_vol_20
+      data_type: float
+      nullable: true
+      comment: 20日价量相关
+    - name: qb_dist_high_20
+      data_type: float
+      nullable: true
+      comment: 相对20日最高价偏离
+    - name: qb_dist_low_20
+      data_type: float
+      nullable: true
+      comment: 相对20日最低价偏离
+    - name: qb_div_px_vol_20
+      data_type: float
+      nullable: true
+      comment: 20日量价背离
+    - name: qb_ma_bias_20
+      data_type: float
+      nullable: true
+      comment: 相对20日均线偏离
+    - name: qb_ma_bias_60
+      data_type: float
+      nullable: true
+      comment: 相对60日均线偏离
+    - name: qb_macd_hist
+      data_type: float
+      nullable: true
+      comment: MACD柱值
+    - name: qb_mom_10
+      data_type: float
+      nullable: true
+      comment: 10日收益率动量
+    - name: qb_mom_20
+      data_type: float
+      nullable: true
+      comment: 20日收益率动量
+    - name: qb_mom_5
+      data_type: float
+      nullable: true
+      comment: 5日收益率动量
+    - name: qb_mom_60
+      data_type: float
+      nullable: true
+      comment: 60日收益率动量
+    - name: qb_rev_20
+      data_type: float
+      nullable: true
+      comment: 20日反转
+    - name: qb_rev_5
+      data_type: float
+      nullable: true
+      comment: 5日反转
+    - name: qb_rsi_14
+      data_type: float
+      nullable: true
+      comment: RSI14
+    - name: qb_turn_mean_20
+      data_type: float
+      nullable: true
+      comment: 20日换手率均值
+    - name: qb_turn_mean_5
+      data_type: float
+      nullable: true
+      comment: 5日换手率均值
+    - name: qb_turn_std_20
+      data_type: float
+      nullable: true
+      comment: 20日换手率波动率
+    - name: qb_vol_ret_20
+      data_type: float
+      nullable: true
+      comment: 20日收益波动率
+    - name: qb_vol_ret_60
+      data_type: float
+      nullable: true
+      comment: 60日收益波动率
+    - name: qb_volratio_5_20
+      data_type: float
+      nullable: true
+      comment: 5日量比相对20日
+    - name: stat_consecutive_up
+      data_type: float
+      nullable: true
+      comment: 连续上涨天数5日
+    - name: stat_max_drawdown_10
+      data_type: float
+      nullable: true
+      comment: 最大回撤10日
+    - name: stat_recovery_speed
+      data_type: float
+      nullable: true
+      comment: 低点回复速度
+    - name: stat_ret_autocorr_5
+      data_type: float
+      nullable: true
+      comment: 收益率自相关5日
+    - name: stat_ret_kurt_20
+      data_type: float
+      nullable: true
+      comment: 收益率峰度20日
+    - name: stat_updown_ratio
+      data_type: float
+      nullable: true
+      comment: 上涨比率20日
+    - name: wide_bps_bias20
+      data_type: float
+      nullable: true
+      comment: 每股净资产20日偏离
+    - name: wide_bps_chg20
+      data_type: float
+      nullable: true
+      comment: 每股净资产20日变化
+    - name: wide_bps_chg5
+      data_type: float
+      nullable: true
+      comment: 每股净资产5日变化
+    - name: wide_bps_chg60
+      data_type: float
+      nullable: true
+      comment: 每股净资产60日变化
+    - name: wide_bps_raw
+      data_type: float
+      nullable: true
+      comment: 每股净资产(原始)
+    - name: wide_current_ratio_bias20
+      data_type: float
+      nullable: true
+      comment: 流动比率20日偏离
+    - name: wide_current_ratio_chg20
+      data_type: float
+      nullable: true
+      comment: 流动比率20日变化
+    - name: wide_current_ratio_chg5
+      data_type: float
+      nullable: true
+      comment: 流动比率5日变化
+    - name: wide_current_ratio_chg60
+      data_type: float
+      nullable: true
+      comment: 流动比率60日变化
+    - name: wide_current_ratio_raw
+      data_type: float
+      nullable: true
+      comment: 流动比率(原始)
+    - name: wide_debt_to_assets_bias20
+      data_type: float
+      nullable: true
+      comment: 资产负债率20日偏离
+    - name: wide_debt_to_assets_chg20
+      data_type: float
+      nullable: true
+      comment: 资产负债率20日变化
+    - name: wide_debt_to_assets_chg5
+      data_type: float
+      nullable: true
+      comment: 资产负债率5日变化
+    - name: wide_debt_to_assets_chg60
+      data_type: float
+      nullable: true
+      comment: 资产负债率60日变化
+    - name: wide_debt_to_assets_raw
+      data_type: float
+      nullable: true
+      comment: 资产负债率(原始)
+    - name: wide_eps_bias20
+      data_type: float
+      nullable: true
+      comment: 每股收益20日偏离
+    - name: wide_eps_chg20
+      data_type: float
+      nullable: true
+      comment: 每股收益20日变化
+    - name: wide_eps_chg5
+      data_type: float
+      nullable: true
+      comment: 每股收益5日变化
+    - name: wide_eps_chg60
+      data_type: float
+      nullable: true
+      comment: 每股收益60日变化
+    - name: wide_eps_raw
+      data_type: float
+      nullable: true
+      comment: 每股收益(原始)
+    - name: wide_ocf_to_or_bias20
+      data_type: float
+      nullable: true
+      comment: 经营现金流/营收20日偏离
+    - name: wide_ocf_to_or_chg20
+      data_type: float
+      nullable: true
+      comment: 经营现金流/营收20日变化
+    - name: wide_ocf_to_or_chg5
+      data_type: float
+      nullable: true
+      comment: 经营现金流/营收5日变化
+    - name: wide_ocf_to_or_chg60
+      data_type: float
+      nullable: true
+      comment: 经营现金流/营收60日变化
+    - name: wide_ocf_to_or_raw
+      data_type: float
+      nullable: true
+      comment: 经营现金流/营收(原始)
+    - name: wide_ocf_to_profit_bias20
+      data_type: float
+      nullable: true
+      comment: 经营现金流/利润20日偏离
+    - name: wide_ocf_to_profit_chg20
+      data_type: float
+      nullable: true
+      comment: 经营现金流/利润20日变化
+    - name: wide_ocf_to_profit_chg5
+      data_type: float
+      nullable: true
+      comment: 经营现金流/利润5日变化
+    - name: wide_ocf_to_profit_chg60
+      data_type: float
+      nullable: true
+      comment: 经营现金流/利润60日变化
+    - name: wide_ocf_to_profit_raw
+      data_type: float
+      nullable: true
+      comment: 经营现金流/利润(原始)
+    - name: wide_ocfps_bias20
+      data_type: float
+      nullable: true
+      comment: 每股经营现金流20日偏离
+    - name: wide_ocfps_chg20
+      data_type: float
+      nullable: true
+      comment: 每股经营现金流20日变化
+    - name: wide_ocfps_chg5
+      data_type: float
+      nullable: true
+      comment: 每股经营现金流5日变化
+    - name: wide_ocfps_chg60
+      data_type: float
+      nullable: true
+      comment: 每股经营现金流60日变化
+    - name: wide_ocfps_raw
+      data_type: float
+      nullable: true
+      comment: 每股经营现金流(原始)
+    - name: wide_cost_50pct_bias20
+      data_type: float
+      nullable: true
+      comment: 50%成本20日偏离
+    - name: wide_cost_50pct_chg20
+      data_type: float
+      nullable: true
+      comment: 50%成本20日变化
+    - name: wide_cost_50pct_chg5
+      data_type: float
+      nullable: true
+      comment: 50%成本5日变化
+    - name: wide_cost_50pct_chg60
+      data_type: float
+      nullable: true
+      comment: 50%成本60日变化
+    - name: wide_cost_50pct_raw
+      data_type: float
+      nullable: true
+      comment: 50%成本(原始)
+    - name: wide_cost_5pct_bias20
+      data_type: float
+      nullable: true
+      comment: 5%成本20日偏离
+    - name: wide_cost_5pct_chg20
+      data_type: float
+      nullable: true
+      comment: 5%成本20日变化
+    - name: wide_cost_5pct_chg5
+      data_type: float
+      nullable: true
+      comment: 5%成本5日变化
+    - name: wide_cost_5pct_chg60
+      data_type: float
+      nullable: true
+      comment: 5%成本60日变化
+    - name: wide_cost_5pct_raw
+      data_type: float
+      nullable: true
+      comment: 5%成本(原始)
+    - name: wide_cost_95pct_bias20
+      data_type: float
+      nullable: true
+      comment: 95%成本20日偏离
+    - name: wide_cost_95pct_chg20
+      data_type: float
+      nullable: true
+      comment: 95%成本20日变化
+    - name: wide_cost_95pct_chg5
+      data_type: float
+      nullable: true
+      comment: 95%成本5日变化
+    - name: wide_cost_95pct_chg60
+      data_type: float
+      nullable: true
+      comment: 95%成本60日变化
+    - name: wide_cost_95pct_raw
+      data_type: float
+      nullable: true
+      comment: 95%成本(原始)
+    - name: wide_weight_avg_cost_bias20
+      data_type: float
+      nullable: true
+      comment: 加权成本20日偏离
+    - name: wide_weight_avg_cost_chg20
+      data_type: float
+      nullable: true
+      comment: 加权成本20日变化
+    - name: wide_weight_avg_cost_chg5
+      data_type: float
+      nullable: true
+      comment: 加权成本5日变化
+    - name: wide_weight_avg_cost_chg60
+      data_type: float
+      nullable: true
+      comment: 加权成本60日变化
+    - name: wide_weight_avg_cost_raw
+      data_type: float
+      nullable: true
+      comment: 加权成本(原始)
+    - name: wide_winner_rate_bias20
+      data_type: float
+      nullable: true
+      comment: 获利比例20日偏离
+    - name: wide_winner_rate_chg20
+      data_type: float
+      nullable: true
+      comment: 获利比例20日变化
+    - name: wide_winner_rate_chg5
+      data_type: float
+      nullable: true
+      comment: 获利比例5日变化
+    - name: wide_winner_rate_chg60
+      data_type: float
+      nullable: true
+      comment: 获利比例60日变化
+    - name: wide_winner_rate_raw
+      data_type: float
+      nullable: true
+      comment: 获利比例(原始)
+    - name: wide_attack_strength
+      data_type: float
+      nullable: true
+      comment: 攻击强度
+    - name: wide_buy_sell_diff_norm
+      data_type: float
+      nullable: true
+      comment: 净买入归一化
+    - name: wide_buy_sell_ratio
+      data_type: float
+      nullable: true
+      comment: 买卖比
+    - name: wide_buy_sell_trend
+      data_type: float
+      nullable: true
+      comment: 资金流趋势
+    - name: wide_cashflow_quality
+      data_type: float
+      nullable: true
+      comment: 现金流质量变化
+    - name: wide_chip_pressure
+      data_type: float
+      nullable: true
+      comment: 筹码压力
+    - name: wide_chip_support
+      data_type: float
+      nullable: true
+      comment: 筹码支撑
+    - name: wide_cost_converge
+      data_type: float
+      nullable: true
+      comment: 筹码集中度
+    - name: wide_cost_converge_chg
+      data_type: float
+      nullable: true
+      comment: 筹码集中度变化
+    - name: wide_earning_yield
+      data_type: float
+      nullable: true
+      comment: 盈利收益率
+    - name: wide_ep_roe
+      data_type: float
+      nullable: true
+      comment: ROE/PE(盈利质量)
+    - name: wide_growth_accel
+      data_type: float
+      nullable: true
+      comment: 成长加速度
+    - name: wide_margin_trend
+      data_type: float
+      nullable: true
+      comment: 毛利率趋势
+    - name: wide_momentum_quality
+      data_type: float
+      nullable: true
+      comment: 动量*质量
+    - name: wide_mv_ratio
+      data_type: float
+      nullable: true
+      comment: 流通市值占比
+    - name: wide_pb_roe
+      data_type: float
+      nullable: true
+      comment: ROE/PB(价值偏离)
+    - name: wide_peg
+      data_type: float
+      nullable: true
+      comment: PEG
+    - name: wide_ps_growth
+      data_type: float
+      nullable: true
+      comment: PS/营收增速
+    - name: wide_quality_score
+      data_type: float
+      nullable: true
+      comment: 质量评分(ROE*低杠杆)
+    - name: wide_size_ln
+      data_type: float
+      nullable: true
+      comment: 对数流通市值
+    - name: wide_value_momentum
+      data_type: float
+      nullable: true
+      comment: 价值动量共振
+    - name: wide_vol_price_sync
+      data_type: float
+      nullable: true
+      comment: 量价相关性10日
+    - name: wide_vol_swing
+      data_type: float
+      nullable: true
+      comment: 振幅量比乘积
+    - name: wide_winner_chg20
+      data_type: float
+      nullable: true
+      comment: 获利比例20日变化
+    - name: wide_winner_chg5
+      data_type: float
+      nullable: true
+      comment: 获利比例5日变化
+    - name: wide_basic_eps_yoy_bias20
+      data_type: float
+      nullable: true
+      comment: EPS同比20日偏离
+    - name: wide_basic_eps_yoy_chg20
+      data_type: float
+      nullable: true
+      comment: EPS同比20日变化
+    - name: wide_basic_eps_yoy_chg5
+      data_type: float
+      nullable: true
+      comment: EPS同比5日变化
+    - name: wide_basic_eps_yoy_chg60
+      data_type: float
+      nullable: true
+      comment: EPS同比60日变化
+    - name: wide_basic_eps_yoy_raw
+      data_type: float
+      nullable: true
+      comment: EPS同比(原始)
+    - name: wide_netprofit_yoy_bias20
+      data_type: float
+      nullable: true
+      comment: 净利同比20日偏离
+    - name: wide_netprofit_yoy_chg20
+      data_type: float
+      nullable: true
+      comment: 净利同比20日变化
+    - name: wide_netprofit_yoy_chg5
+      data_type: float
+      nullable: true
+      comment: 净利同比5日变化
+    - name: wide_netprofit_yoy_chg60
+      data_type: float
+      nullable: true
+      comment: 净利同比60日变化
+    - name: wide_netprofit_yoy_raw
+      data_type: float
+      nullable: true
+      comment: 净利同比(原始)
+    - name: wide_op_yoy_bias20
+      data_type: float
+      nullable: true
+      comment: 营利同比20日偏离
+    - name: wide_op_yoy_chg20
+      data_type: float
+      nullable: true
+      comment: 营利同比20日变化
+    - name: wide_op_yoy_chg5
+      data_type: float
+      nullable: true
+      comment: 营利同比5日变化
+    - name: wide_op_yoy_chg60
+      data_type: float
+      nullable: true
+      comment: 营利同比60日变化
+    - name: wide_op_yoy_raw
+      data_type: float
+      nullable: true
+      comment: 营利同比(原始)
+    - name: wide_or_yoy_bias20
+      data_type: float
+      nullable: true
+      comment: 营收同比20日偏离
+    - name: wide_or_yoy_chg20
+      data_type: float
+      nullable: true
+      comment: 营收同比20日变化
+    - name: wide_or_yoy_chg5
+      data_type: float
+      nullable: true
+      comment: 营收同比5日变化
+    - name: wide_or_yoy_chg60
+      data_type: float
+      nullable: true
+      comment: 营收同比60日变化
+    - name: wide_or_yoy_raw
+      data_type: float
+      nullable: true
+      comment: 营收同比(原始)
+    - name: wide_q_netprofit_yoy_bias20
+      data_type: float
+      nullable: true
+      comment: 单季净利同比20日偏离
+    - name: wide_q_netprofit_yoy_chg20
+      data_type: float
+      nullable: true
+      comment: 单季净利同比20日变化
+    - name: wide_q_netprofit_yoy_chg5
+      data_type: float
+      nullable: true
+      comment: 单季净利同比5日变化
+    - name: wide_q_netprofit_yoy_chg60
+      data_type: float
+      nullable: true
+      comment: 单季净利同比60日变化
+    - name: wide_q_netprofit_yoy_raw
+      data_type: float
+      nullable: true
+      comment: 单季净利同比(原始)
+    - name: wide_q_sales_yoy_bias20
+      data_type: float
+      nullable: true
+      comment: 单季营收同比20日偏离
+    - name: wide_q_sales_yoy_chg20
+      data_type: float
+      nullable: true
+      comment: 单季营收同比20日变化
+    - name: wide_q_sales_yoy_chg5
+      data_type: float
+      nullable: true
+      comment: 单季营收同比5日变化
+    - name: wide_q_sales_yoy_chg60
+      data_type: float
+      nullable: true
+      comment: 单季营收同比60日变化
+    - name: wide_q_sales_yoy_raw
+      data_type: float
+      nullable: true
+      comment: 单季营收同比(原始)
+    - name: wide_grossprofit_margin_bias20
+      data_type: float
+      nullable: true
+      comment: 毛利率20日偏离
+    - name: wide_grossprofit_margin_chg20
+      data_type: float
+      nullable: true
+      comment: 毛利率20日变化
+    - name: wide_grossprofit_margin_chg5
+      data_type: float
+      nullable: true
+      comment: 毛利率5日变化
+    - name: wide_grossprofit_margin_chg60
+      data_type: float
+      nullable: true
+      comment: 毛利率60日变化
+    - name: wide_grossprofit_margin_raw
+      data_type: float
+      nullable: true
+      comment: 毛利率(原始)
+    - name: wide_netprofit_margin_bias20
+      data_type: float
+      nullable: true
+      comment: 净利率20日偏离
+    - name: wide_netprofit_margin_chg20
+      data_type: float
+      nullable: true
+      comment: 净利率20日变化
+    - name: wide_netprofit_margin_chg5
+      data_type: float
+      nullable: true
+      comment: 净利率5日变化
+    - name: wide_netprofit_margin_chg60
+      data_type: float
+      nullable: true
+      comment: 净利率60日变化
+    - name: wide_netprofit_margin_raw
+      data_type: float
+      nullable: true
+      comment: 净利率(原始)
+    - name: wide_roa_bias20
+      data_type: float
+      nullable: true
+      comment: ROA20日偏离
+    - name: wide_roa_chg20
+      data_type: float
+      nullable: true
+      comment: ROA20日变化
+    - name: wide_roa_chg5
+      data_type: float
+      nullable: true
+      comment: ROA5日变化
+    - name: wide_roa_chg60
+      data_type: float
+      nullable: true
+      comment: ROA60日变化
+    - name: wide_roa_raw
+      data_type: float
+      nullable: true
+      comment: ROA(原始)
+    - name: wide_roe_bias20
+      data_type: float
+      nullable: true
+      comment: ROE20日偏离
+    - name: wide_roe_chg20
+      data_type: float
+      nullable: true
+      comment: ROE20日变化
+    - name: wide_roe_chg5
+      data_type: float
+      nullable: true
+      comment: ROE5日变化
+    - name: wide_roe_chg60
+      data_type: float
+      nullable: true
+      comment: ROE60日变化
+    - name: wide_roe_raw
+      data_type: float
+      nullable: true
+      comment: ROE(原始)
+    - name: wide_roic_bias20
+      data_type: float
+      nullable: true
+      comment: ROIC20日偏离
+    - name: wide_roic_chg20
+      data_type: float
+      nullable: true
+      comment: ROIC20日变化
+    - name: wide_roic_chg5
+      data_type: float
+      nullable: true
+      comment: ROIC5日变化
+    - name: wide_roic_chg60
+      data_type: float
+      nullable: true
+      comment: ROIC60日变化
+    - name: wide_roic_raw
+      data_type: float
+      nullable: true
+      comment: ROIC(原始)
+    - name: wide_q_gsprofit_margin_bias20
+      data_type: float
+      nullable: true
+      comment: 单季毛利率20日偏离
+    - name: wide_q_gsprofit_margin_chg20
+      data_type: float
+      nullable: true
+      comment: 单季毛利率20日变化
+    - name: wide_q_gsprofit_margin_chg5
+      data_type: float
+      nullable: true
+      comment: 单季毛利率5日变化
+    - name: wide_q_gsprofit_margin_chg60
+      data_type: float
+      nullable: true
+      comment: 单季毛利率60日变化
+    - name: wide_q_gsprofit_margin_raw
+      data_type: float
+      nullable: true
+      comment: 单季毛利率(原始)
+    - name: wide_q_roe_bias20
+      data_type: float
+      nullable: true
+      comment: 单季ROE20日偏离
+    - name: wide_q_roe_chg20
+      data_type: float
+      nullable: true
+      comment: 单季ROE20日变化
+    - name: wide_q_roe_chg5
+      data_type: float
+      nullable: true
+      comment: 单季ROE5日变化
+    - name: wide_q_roe_chg60
+      data_type: float
+      nullable: true
+      comment: 单季ROE60日变化
+    - name: wide_q_roe_raw
+      data_type: float
+      nullable: true
+      comment: 单季ROE(原始)
+    - name: wide_activity_bias20
+      data_type: float
+      nullable: true
+      comment: 活跃度20日偏离
+    - name: wide_activity_chg20
+      data_type: float
+      nullable: true
+      comment: 活跃度20日变化
+    - name: wide_activity_chg5
+      data_type: float
+      nullable: true
+      comment: 活跃度5日变化
+    - name: wide_activity_chg60
+      data_type: float
+      nullable: true
+      comment: 活跃度60日变化
+    - name: wide_activity_raw
+      data_type: float
+      nullable: true
+      comment: 活跃度(原始)
+    - name: wide_attack_bias20
+      data_type: float
+      nullable: true
+      comment: 攻击力20日偏离
+    - name: wide_attack_chg20
+      data_type: float
+      nullable: true
+      comment: 攻击力20日变化
+    - name: wide_attack_chg5
+      data_type: float
+      nullable: true
+      comment: 攻击力5日变化
+    - name: wide_attack_chg60
+      data_type: float
+      nullable: true
+      comment: 攻击力60日变化
+    - name: wide_attack_raw
+      data_type: float
+      nullable: true
+      comment: 攻击力(原始)
+    - name: wide_buying_bias20
+      data_type: float
+      nullable: true
+      comment: 买盘20日偏离
+    - name: wide_buying_chg20
+      data_type: float
+      nullable: true
+      comment: 买盘20日变化
+    - name: wide_buying_chg5
+      data_type: float
+      nullable: true
+      comment: 买盘5日变化
+    - name: wide_buying_chg60
+      data_type: float
+      nullable: true
+      comment: 买盘60日变化
+    - name: wide_buying_raw
+      data_type: float
+      nullable: true
+      comment: 买盘(原始)
+    - name: wide_selling_bias20
+      data_type: float
+      nullable: true
+      comment: 卖盘20日偏离
+    - name: wide_selling_chg20
+      data_type: float
+      nullable: true
+      comment: 卖盘20日变化
+    - name: wide_selling_chg5
+      data_type: float
+      nullable: true
+      comment: 卖盘5日变化
+    - name: wide_selling_chg60
+      data_type: float
+      nullable: true
+      comment: 卖盘60日变化
+    - name: wide_selling_raw
+      data_type: float
+      nullable: true
+      comment: 卖盘(原始)
+    - name: wide_strength_bias20
+      data_type: float
+      nullable: true
+      comment: 强弱度20日偏离
+    - name: wide_strength_chg20
+      data_type: float
+      nullable: true
+      comment: 强弱度20日变化
+    - name: wide_strength_chg5
+      data_type: float
+      nullable: true
+      comment: 强弱度5日变化
+    - name: wide_strength_chg60
+      data_type: float
+      nullable: true
+      comment: 强弱度60日变化
+    - name: wide_strength_raw
+      data_type: float
+      nullable: true
+      comment: 强弱度(原始)
+    - name: wide_swing_bias20
+      data_type: float
+      nullable: true
+      comment: 振幅20日偏离
+    - name: wide_swing_chg20
+      data_type: float
+      nullable: true
+      comment: 振幅20日变化
+    - name: wide_swing_chg5
+      data_type: float
+      nullable: true
+      comment: 振幅5日变化
+    - name: wide_swing_chg60
+      data_type: float
+      nullable: true
+      comment: 振幅60日变化
+    - name: wide_swing_raw
+      data_type: float
+      nullable: true
+      comment: 振幅(原始)
+    - name: wide_turnover_rate_f_bias20
+      data_type: float
+      nullable: true
+      comment: 换手率20日偏离
+    - name: wide_turnover_rate_f_chg20
+      data_type: float
+      nullable: true
+      comment: 换手率20日变化
+    - name: wide_turnover_rate_f_chg5
+      data_type: float
+      nullable: true
+      comment: 换手率5日变化
+    - name: wide_turnover_rate_f_chg60
+      data_type: float
+      nullable: true
+      comment: 换手率60日变化
+    - name: wide_turnover_rate_f_raw
+      data_type: float
+      nullable: true
+      comment: 换手率(原始)
+    - name: wide_vol_ratio_bias20
+      data_type: float
+      nullable: true
+      comment: 量比20日偏离
+    - name: wide_vol_ratio_chg20
+      data_type: float
+      nullable: true
+      comment: 量比20日变化
+    - name: wide_vol_ratio_chg5
+      data_type: float
+      nullable: true
+      comment: 量比5日变化
+    - name: wide_vol_ratio_chg60
+      data_type: float
+      nullable: true
+      comment: 量比60日变化
+    - name: wide_vol_ratio_raw
+      data_type: float
+      nullable: true
+      comment: 量比(原始)
+    - name: wide_circ_mv_bias20
+      data_type: float
+      nullable: true
+      comment: 流通市值20日偏离
+    - name: wide_circ_mv_chg20
+      data_type: float
+      nullable: true
+      comment: 流通市值20日变化
+    - name: wide_circ_mv_chg5
+      data_type: float
+      nullable: true
+      comment: 流通市值5日变化
+    - name: wide_circ_mv_chg60
+      data_type: float
+      nullable: true
+      comment: 流通市值60日变化
+    - name: wide_circ_mv_raw
+      data_type: float
+      nullable: true
+      comment: 流通市值(原始)
+    - name: wide_total_mv_bias20
+      data_type: float
+      nullable: true
+      comment: 总市值20日偏离
+    - name: wide_total_mv_chg20
+      data_type: float
+      nullable: true
+      comment: 总市值20日变化
+    - name: wide_total_mv_chg5
+      data_type: float
+      nullable: true
+      comment: 总市值5日变化
+    - name: wide_total_mv_chg60
+      data_type: float
+      nullable: true
+      comment: 总市值60日变化
+    - name: wide_total_mv_raw
+      data_type: float
+      nullable: true
+      comment: 总市值(原始)
+    - name: wide_dv_ttm_bias20
+      data_type: float
+      nullable: true
+      comment: 股息率TTM20日偏离
+    - name: wide_dv_ttm_chg20
+      data_type: float
+      nullable: true
+      comment: 股息率TTM20日变化
+    - name: wide_dv_ttm_chg5
+      data_type: float
+      nullable: true
+      comment: 股息率TTM5日变化
+    - name: wide_dv_ttm_chg60
+      data_type: float
+      nullable: true
+      comment: 股息率TTM60日变化
+    - name: wide_dv_ttm_raw
+      data_type: float
+      nullable: true
+      comment: 股息率TTM(原始)
+    - name: wide_pb_bias20
+      data_type: float
+      nullable: true
+      comment: 市净率20日偏离
+    - name: wide_pb_chg20
+      data_type: float
+      nullable: true
+      comment: 市净率20日变化
+    - name: wide_pb_chg5
+      data_type: float
+      nullable: true
+      comment: 市净率5日变化
+    - name: wide_pb_chg60
+      data_type: float
+      nullable: true
+      comment: 市净率60日变化
+    - name: wide_pb_raw
+      data_type: float
+      nullable: true
+      comment: 市净率(原始)
+    - name: wide_pe_ttm_bias20
+      data_type: float
+      nullable: true
+      comment: 市盈率TTM20日偏离
+    - name: wide_pe_ttm_chg20
+      data_type: float
+      nullable: true
+      comment: 市盈率TTM20日变化
+    - name: wide_pe_ttm_chg5
+      data_type: float
+      nullable: true
+      comment: 市盈率TTM5日变化
+    - name: wide_pe_ttm_chg60
+      data_type: float
+      nullable: true
+      comment: 市盈率TTM60日变化
+    - name: wide_pe_ttm_raw
+      data_type: float
+      nullable: true
+      comment: 市盈率TTM(原始)
+    - name: wide_ps_ttm_bias20
+      data_type: float
+      nullable: true
+      comment: 市销率TTM20日偏离
+    - name: wide_ps_ttm_chg20
+      data_type: float
+      nullable: true
+      comment: 市销率TTM20日变化
+    - name: wide_ps_ttm_chg5
+      data_type: float
+      nullable: true
+      comment: 市销率TTM5日变化
+    - name: wide_ps_ttm_chg60
+      data_type: float
+      nullable: true
+      comment: 市销率TTM60日变化
+    - name: wide_ps_ttm_raw
+      data_type: float
+      nullable: true
+      comment: 市销率TTM(原始)
+    - name: factor_errors_json
+      data_type: json
+      nullable: true
+      comment: 因子计算错误JSON载荷，按factor_id索引
+    - name: factor_count
+      data_type: int
+      comment: 本批映射因子数量
+    - name: build_time
+      data_type: datetime
+      comment: 汇总构建时间
+    - name: source
+      data_type: str
+      length: 32
+      comment: 来源系统
+    - name: source_table
+      data_type: str
+      length: 255
+      comment: 来源表
+    - name: source_batch_id
+      data_type: str
+      length: 512
+      comment: 来源批次ID
+    - name: source_record_hash
+      data_type: str
+      length: 32
+      comment: 来源记录哈希

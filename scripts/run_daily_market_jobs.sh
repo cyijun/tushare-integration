@@ -6,9 +6,9 @@ JOBS_FILE="${JOBS_FILE:-$PROJECT_DIR/jobs.yaml}"
 CONFIG_FILE="${CONFIG_FILE:-$PROJECT_DIR/config.yaml}"
 LOG_DIR="${LOG_DIR:-$PROJECT_DIR/logs}"
 UPDATE_TYPE="${UPDATE_TYPE:-incremental}"
-LOCK_FILE="${LOCK_FILE:-/tmp/tushare-stock-jobs.lock}"
+LOCK_FILE="${LOCK_FILE:-/tmp/tushare-market-jobs.lock}"
 
-IMAGE_DEFAULT="${IMAGE_DEFAULT:-tushare-integration:0.0.5}"
+IMAGE_DEFAULT="${IMAGE_DEFAULT:-tushare-integration:0.0.6}"
 IMAGE_BASIC="${IMAGE_BASIC:-$IMAGE_DEFAULT}"
 DWD_SYNC_IMAGE="${DWD_SYNC_IMAGE:-$IMAGE_DEFAULT}"
 DWS_SYNC_IMAGE="${DWS_SYNC_IMAGE:-$DWD_SYNC_IMAGE}"
@@ -20,12 +20,12 @@ DWD_SYNC_HAD_FAILURE=0
 DWS_SYNC_HAD_FAILURE=0
 
 mkdir -p "$LOG_DIR"
-RUN_LOG="${RUN_LOG:-$LOG_DIR/${UPDATE_TYPE}-stock-jobs-$(date +%Y%m%d).log}"
+RUN_LOG="${RUN_LOG:-$LOG_DIR/${UPDATE_TYPE}-market-jobs-$(date +%Y%m%d).log}"
 exec > >(tee -a "$RUN_LOG") 2>&1
 
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
-  echo "[$(date '+%F %T')] Another stock job run is already active. Exiting."
+  echo "[$(date '+%F %T')] Another market job run is already active. Exiting."
   exit 1
 fi
 
@@ -234,12 +234,14 @@ main() {
     "tushare-job-${UPDATE_TYPE}-margin|$IMAGE_DEFAULT|stock/margin"
     "tushare-job-${UPDATE_TYPE}-market|$IMAGE_DEFAULT|stock/market"
     "tushare-job-${UPDATE_TYPE}-quotes|$IMAGE_DEFAULT|stock/quotes"
+    "tushare-job-${UPDATE_TYPE}-index-quotes|$IMAGE_DEFAULT|index/quotes"
     "tushare-job-${UPDATE_TYPE}-special|$IMAGE_DEFAULT|stock/special"
   )
 
   # Ordered by DWD dependencies. DWD tasks stay atomic and source-normalized.
   local dwd_sync_tasks=(
     "tushare-dwd-sync-stock-eod-price|$DWD_SYNC_IMAGE|dwd_stock_eod_price"
+    "tushare-dwd-sync-index-eod-price|$DWD_SYNC_IMAGE|dwd_index_eod_price"
     "tushare-dwd-sync-stock-daily-basic|$DWD_SYNC_IMAGE|dwd_stock_daily_basic"
     "tushare-dwd-sync-stock-eod-quote-metrics|$DWD_SYNC_IMAGE|dwd_stock_eod_quote_metrics"
     "tushare-dwd-sync-stock-financial-indicator|$DWD_SYNC_IMAGE|dwd_stock_financial_indicator"
@@ -250,9 +252,10 @@ main() {
 
   local dws_sync_tasks=(
     "tushare-dws-sync-stock-factor-wide|$DWS_SYNC_IMAGE|dws_stock_factor_wide"
+    "tushare-dws-sync-stock-factor-wide-matrix|$DWS_SYNC_IMAGE|dws_stock_factor_wide_matrix"
   )
 
-  echo "[$(date '+%F %T')] Stock jobs started. update_type=$UPDATE_TYPE Log: $RUN_LOG"
+  echo "[$(date '+%F %T')] Market jobs started. update_type=$UPDATE_TYPE Log: $RUN_LOG"
 
   local entry
   local container
@@ -265,7 +268,7 @@ main() {
 
   if [[ "$NORMAL_JOBS_HAD_FAILURE" != "0" ]]; then
     echo "[$(date '+%F %T')] Skipping DWD sync tasks because one or more normal jobs failed."
-    echo "[$(date '+%F %T')] Stock jobs completed with failures."
+    echo "[$(date '+%F %T')] Market jobs completed with failures."
     return 0
   fi
 
@@ -278,7 +281,7 @@ main() {
   done
 
   if [[ "$DWD_SYNC_HAD_FAILURE" != "0" ]]; then
-    echo "[$(date '+%F %T')] Stock jobs completed; DWD sync tasks completed with failures."
+    echo "[$(date '+%F %T')] Market jobs completed; DWD sync tasks completed with failures."
     return 0
   fi
 
@@ -290,11 +293,11 @@ main() {
   done
 
   if [[ "$DWS_SYNC_HAD_FAILURE" != "0" ]]; then
-    echo "[$(date '+%F %T')] Stock jobs completed; DWS sync tasks completed with failures."
+    echo "[$(date '+%F %T')] Market jobs completed; DWS sync tasks completed with failures."
     return 0
   fi
 
-  echo "[$(date '+%F %T')] Stock jobs, DWD sync tasks, and DWS sync tasks completed."
+  echo "[$(date '+%F %T')] Market jobs, DWD sync tasks, and DWS sync tasks completed."
 }
 
 main "$@"

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import json
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -14,6 +16,7 @@ from tushare_integration.settings import TushareIntegrationSettings
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DWS_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema" / "dws"
+FACTOR_MAPPING_CSV = ROOT_DIR / "docs" / "prd" / "factor_mapping_readable.csv"
 DWS_CLICKHOUSE_SEND_RECEIVE_TIMEOUT = 1200
 
 STOCK_FACTOR_WIDE_SOURCES = [
@@ -25,11 +28,45 @@ STOCK_FACTOR_WIDE_SOURCES = [
     "dwd_stock_margin_trading",
     "dwd_stock_chip_distribution",
 ]
+STOCK_FACTOR_WIDE_MATRIX_SOURCES = ["dws_stock_factor_wide"]
+STOCK_FACTOR_WIDE_MATRIX_UDF = "dws_stock_factor_rows"
+STOCK_FACTOR_WIDE_MATRIX_PREFIX_COLUMNS = [
+    "trade_date",
+    "event_date",
+    "available_trade_date",
+    "source_batch_id",
+    "source_record_hash",
+]
+STOCK_FACTOR_WIDE_MATRIX_EXCLUDED_FIELDS = {
+    "build_time",
+}
+STOCK_FACTOR_WIDE_MATRIX_ALIASES = {
+    "volume": "`vol`",
+    "vwap": "`avg_price`",
+    "turnover": "coalesce(`turnover_rate_f`, `turn_over`)",
+}
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f.read())
+
+
+def _sql_string_literal(value: str) -> str:
+    return "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+
+def _load_factor_ids() -> list[str]:
+    with open(FACTOR_MAPPING_CSV, "r", encoding="utf-8") as f:
+        rows = csv.DictReader(f)
+        factor_ids = []
+        seen = set()
+        for row in rows:
+            factor_id = row["factor_id"].strip()
+            if factor_id and factor_id not in seen:
+                seen.add(factor_id)
+                factor_ids.append(factor_id)
+        return factor_ids
 
 
 class DWSManager:
@@ -348,16 +385,114 @@ SELECT
 FROM wide_candidates
 """
 
+    def _stock_factor_matrix_source_fields(self) -> list[tuple[str, str]]:
+        wide_spec = self.load_spec("dws_stock_factor_wide")
+        source_columns = wide_spec["schema"]["columns"]
+        numeric_fields = [
+            column["name"]
+            for column in source_columns
+            if column.get("data_type") in {"float", "number", "int"}
+            and column["name"] not in STOCK_FACTOR_WIDE_MATRIX_EXCLUDED_FIELDS
+        ]
+        field_exprs: dict[str, str] = {field_name: f"`{field_name}`" for field_name in numeric_fields}
+        for alias, expression in STOCK_FACTOR_WIDE_MATRIX_ALIASES.items():
+            field_exprs.setdefault(alias, expression)
+        return sorted(field_exprs.items())
+
+    def _render_stock_factor_wide_matrix_sync_sql(self, target_table_name: str) -> str:
+        db_name = self.settings.database.db_name
+        source_table = STOCK_FACTOR_WIDE_MATRIX_SOURCES[0]
+        fields = self._stock_factor_matrix_source_fields()
+        factor_ids = _load_factor_ids()
+        field_names_json = _sql_string_literal(json.dumps([name for name, _ in fields], ensure_ascii=False))
+        row_tuple_values = ",\n                ".join(
+            [f"`{column}`" for column in STOCK_FACTOR_WIDE_MATRIX_PREFIX_COLUMNS]
+            + [expression for _, expression in fields]
+        )
+        factor_select_sql = ",\n    ".join(
+            [
+                "toFloat64OrNull("
+                f"JSONExtractRaw(factor_values_json, 'values', {_sql_string_literal(factor_id)})"
+                f") AS `{factor_id}`"
+                for factor_id in factor_ids
+            ]
+        )
+        return f"""
+INSERT INTO {db_name}.{target_table_name}
+WITH
+panel AS (
+    SELECT
+        instrument_id,
+        anyLast(instrument_type) AS instrument_type,
+        anyLast(exchange) AS exchange,
+        anyLast(source_code) AS source_code,
+        arraySort(
+            row -> tupleElement(row, 1),
+            groupArray(tuple(
+                {row_tuple_values}
+            ))
+        ) AS rows
+    FROM {db_name}.{source_table}
+    GROUP BY instrument_id
+),
+factorized AS (
+    SELECT
+        instrument_id,
+        instrument_type,
+        exchange,
+        source_code,
+        arrayJoin({STOCK_FACTOR_WIDE_MATRIX_UDF}({field_names_json}, toJSONString(rows))) AS factor_row
+    FROM panel
+),
+factor_rows AS (
+    SELECT
+        instrument_id,
+        instrument_type,
+        exchange,
+        source_code,
+        tupleElement(factor_row, 1) AS event_date,
+        tupleElement(factor_row, 2) AS trade_date,
+        tupleElement(factor_row, 3) AS available_trade_date,
+        tupleElement(factor_row, 4) AS factor_values_json,
+        tupleElement(factor_row, 5) AS factor_errors_json,
+        tupleElement(factor_row, 6) AS factor_count,
+        tupleElement(factor_row, 7) AS source_batch_id,
+        tupleElement(factor_row, 8) AS source_record_hash
+    FROM factorized
+)
+SELECT
+    instrument_id,
+    instrument_type,
+    exchange,
+    source_code,
+    event_date,
+    trade_date,
+    available_trade_date,
+    {factor_select_sql},
+    factor_errors_json,
+    factor_count,
+    now64(3) AS build_time,
+    'python_udf' AS source,
+    '{source_table}' AS source_table,
+    source_batch_id,
+    source_record_hash
+FROM factor_rows
+"""
+
     def render_sync_sql(self, table_name: str, target_table_name: str | None = None) -> str:
         spec = self.load_spec(table_name)
         target_table_name = target_table_name or spec["name"]
         if spec.get("builder") == "stock_factor_wide":
             return self._render_stock_factor_wide_sync_sql(target_table_name)
+        if spec.get("builder") == "stock_factor_wide_matrix":
+            return self._render_stock_factor_wide_matrix_sync_sql(target_table_name)
         raise ValueError(f"Unsupported DWS builder for {table_name}: {spec.get('builder')}")
 
     def get_required_source_tables(self, spec: dict[str, Any]) -> list[str]:
         if spec.get("builder") == "stock_factor_wide":
             return STOCK_FACTOR_WIDE_SOURCES
+        if spec.get("builder") == "stock_factor_wide_matrix":
+            return STOCK_FACTOR_WIDE_MATRIX_SOURCES
         return []
 
     def ensure_source_tables(self, spec: dict[str, Any]) -> None:
@@ -377,7 +512,28 @@ FROM wide_candidates
         if missing_tables:
             raise ValueError(
                 f"Missing source tables for {spec['name']}: {', '.join(missing_tables)}. "
-                "Sync the corresponding DWD tables first."
+                "Sync the corresponding upstream tables first."
+            )
+
+    def ensure_required_functions(self, spec: dict[str, Any]) -> None:
+        if self.settings.database.db_type != "clickhouse":
+            return
+        if spec.get("builder") != "stock_factor_wide_matrix":
+            return
+        result = self.get_db_engine().query_df(
+            f"""
+            SELECT count() AS function_count
+            FROM system.functions
+            WHERE name = '{STOCK_FACTOR_WIDE_MATRIX_UDF}'
+              AND origin = 'ExecutableUserDefined'
+            """
+        )
+        if int(result["function_count"].iloc[0]) <= 0:
+            raise ValueError(
+                f"Missing ClickHouse executable UDF {STOCK_FACTOR_WIDE_MATRIX_UDF}. "
+                "Install deploy/clickhouse/user_scripts/dws_stock_factor_rows.py under user_scripts_path "
+                "and deploy/clickhouse/user_defined_functions/dws_stock_factor_rows.xml under "
+                "user_defined_executable_functions_config, then reload ClickHouse functions."
             )
 
     def create_table(self, table_name: str) -> None:
@@ -422,6 +578,7 @@ FROM wide_candidates
     ) -> None:
         spec = self.load_spec(table_name)
         self.ensure_source_tables(spec)
+        self.ensure_required_functions(spec)
         target_table = spec["name"]
         tmp_table = f"{target_table}_tmp"
         schema = self.build_schema(spec)

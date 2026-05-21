@@ -163,10 +163,10 @@ python main.py run job stock/quotes --update-type incremental
 python main.py run job stock/quotes --update-type full
 ```
 
-仓库中的 `scripts/run_daily_stock_jobs.sh` 默认运行 `UPDATE_TYPE=incremental`，可在 crontab 中每天执行；周度或月度全量任务可使用：
+仓库中的 `scripts/run_daily_market_jobs.sh` 默认运行 `UPDATE_TYPE=incremental`，可在 crontab 中每天执行；周度或月度全量任务可使用：
 
 ```shell
-UPDATE_TYPE=full scripts/run_daily_stock_jobs.sh
+UPDATE_TYPE=full scripts/run_daily_market_jobs.sh
 ```
 
 ```yaml

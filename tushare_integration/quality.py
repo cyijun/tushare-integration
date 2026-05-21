@@ -44,6 +44,7 @@ DWD_TRADE_RELEVANT_TABLES = {
 
 DWS_TRADE_DATE_COLUMNS = {
     "dws_stock_factor_wide": "trade_date",
+    "dws_stock_factor_wide_matrix": "trade_date",
 }
 
 
@@ -402,6 +403,57 @@ class QualityManager:
                     ValidationRule(
                         rule_id="dws_factor_wide_no_future_trade_visibility",
                         description="DWS factor rows must not be available before their trade date",
+                        severity="BLOCKER",
+                        issue_count_sql=f"""
+                            SELECT count() AS issue_count
+                            FROM {qualified}
+                            {self._where_sql("available_trade_date < trade_date", validation_filter)}
+                        """,
+                    ),
+                ]
+            )
+        if table_name == "dws_stock_factor_wide_matrix":
+            rules.extend(
+                [
+                    self._required_columns_rule(
+                        db_name,
+                        target_table_name,
+                        [
+                            "instrument_id",
+                            "trade_date",
+                            "available_trade_date",
+                            "factor_count",
+                            "source_record_hash",
+                        ],
+                    ),
+                    ValidationRule(
+                        rule_id="dws_factor_wide_matrix_unique_key",
+                        description="DWS factor matrix must have one row per instrument and trade date",
+                        severity="BLOCKER",
+                        issue_count_sql=f"""
+                            SELECT count() AS issue_count
+                            FROM (
+                                SELECT instrument_id, trade_date
+                                FROM {qualified}
+                                {self._where_sql(validation_filter=validation_filter)}
+                                GROUP BY instrument_id, trade_date
+                                HAVING count() > 1
+                            )
+                        """,
+                    ),
+                    ValidationRule(
+                        rule_id="dws_factor_wide_matrix_factor_count_positive",
+                        description="DWS factor matrix must include mapped factor columns",
+                        severity="BLOCKER",
+                        issue_count_sql=f"""
+                            SELECT count() AS issue_count
+                            FROM {qualified}
+                            {self._where_sql("factor_count <= 0", validation_filter)}
+                        """,
+                    ),
+                    ValidationRule(
+                        rule_id="dws_factor_wide_matrix_no_future_trade_visibility",
+                        description="DWS factor matrix rows must not be available before their trade date",
                         severity="BLOCKER",
                         issue_count_sql=f"""
                             SELECT count() AS issue_count
