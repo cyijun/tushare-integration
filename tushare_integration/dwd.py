@@ -15,6 +15,8 @@ DWD_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema" / "dwd"
 ODS_SCHEMA_DIR = ROOT_DIR / "tushare_integration" / "schema"
 FAR_FUTURE_TS_SQL = "toDateTime64('9999-12-31 00:00:00', 3)"
 CALENDAR_SOURCE_TABLE = "trade_cal"
+MIN_LAYER_TRADE_DATE = "2010-01-01"
+MIN_LAYER_TRADE_DATE_SQL = f"toDate32('{MIN_LAYER_TRADE_DATE}')"
 
 
 COMMON_DWD_COLUMNS = [
@@ -67,6 +69,10 @@ def _source_column_copy(column: dict[str, Any], business_key: set[str]) -> dict[
     copied_column = deepcopy(column)
     copied_column.pop("nullable", None)
     return copied_column
+
+
+def _schema_has_column(schema: dict[str, Any], column_name: str) -> bool:
+    return any(column["name"] == column_name for column in schema.get("columns", []))
 
 
 class DWDManager:
@@ -159,7 +165,10 @@ calendar_map AS (
             if column["name"] not in source_column_excludes
         ]
         business_key_partition = ", ".join([f"src.{_quote_column(column)}" for column in business_key])
-        business_key_not_null = " AND ".join([f"src.{_quote_column(column)} IS NOT NULL" for column in business_key])
+        source_filters = [f"src.{_quote_column(column)} IS NOT NULL" for column in business_key]
+        if _schema_has_column(source_schema, "trade_date"):
+            source_filters.append(f"src.`trade_date` >= {MIN_LAYER_TRADE_DATE_SQL}")
+        source_filter_sql = " AND ".join(source_filters)
         source_column_select = ",\n    ".join([f"src.{_quote_column(column)}" for column in source_columns])
 
         derived_selects: list[str] = []
@@ -229,7 +238,7 @@ FROM (
                 ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
             ) AS _prev_record_hash
         FROM {db_name}.{spec['source']['table_name']} src
-        WHERE {business_key_not_null}
+        WHERE {source_filter_sql}
     ) src
     WHERE src._prev_record_hash IS NULL OR src._prev_record_hash != src._record_hash
 ) src

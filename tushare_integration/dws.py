@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 
 from tushare_integration.db_engine import DatabaseEngineFactory
-from tushare_integration.dwd import FAR_FUTURE_TS_SQL
+from tushare_integration.dwd import FAR_FUTURE_TS_SQL, MIN_LAYER_TRADE_DATE_SQL
 from tushare_integration.quality import QualityManager, ValidationMode
 from tushare_integration.settings import TushareIntegrationSettings
 
@@ -116,16 +116,19 @@ price AS (
     SELECT *
     FROM {db_name}.dwd_stock_eod_price
     WHERE sys_to = {FAR_FUTURE_TS_SQL}
+      AND event_date >= {MIN_LAYER_TRADE_DATE_SQL}
 ),
 daily_basic AS (
     SELECT *
     FROM {db_name}.dwd_stock_daily_basic
     WHERE sys_to = {FAR_FUTURE_TS_SQL}
+      AND event_date >= {MIN_LAYER_TRADE_DATE_SQL}
 ),
 quote_metrics AS (
     SELECT *
     FROM {db_name}.dwd_stock_eod_quote_metrics
     WHERE sys_to = {FAR_FUTURE_TS_SQL}
+      AND event_date >= {MIN_LAYER_TRADE_DATE_SQL}
 ),
 financial_indicator AS (
     SELECT
@@ -174,16 +177,19 @@ northbound_holding AS (
     SELECT *
     FROM {db_name}.dwd_stock_northbound_holding
     WHERE sys_to = {FAR_FUTURE_TS_SQL}
+      AND event_date >= {MIN_LAYER_TRADE_DATE_SQL}
 ),
 margin_trading AS (
     SELECT *
     FROM {db_name}.dwd_stock_margin_trading
     WHERE sys_to = {FAR_FUTURE_TS_SQL}
+      AND event_date >= {MIN_LAYER_TRADE_DATE_SQL}
 ),
 chip_distribution AS (
     SELECT *
     FROM {db_name}.dwd_stock_chip_distribution
     WHERE sys_to = {FAR_FUTURE_TS_SQL}
+      AND event_date >= {MIN_LAYER_TRADE_DATE_SQL}
 ),
 wide_candidates AS (
     SELECT
@@ -433,6 +439,7 @@ panel AS (
             ))
         ) AS rows
     FROM {db_name}.{source_table}
+    WHERE trade_date >= {MIN_LAYER_TRADE_DATE_SQL}
     GROUP BY instrument_id
 ),
 factorized AS (

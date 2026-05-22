@@ -21,6 +21,7 @@ from tushare_integration.storage import (
 
 
 TUSHARE_EMPTY_DATA_MESSAGE_FRAGMENTS = (
+    "查询数据失败，请确认参数",
     "指定数据不存在",
     "查询的数据为空",
     "数据为空",

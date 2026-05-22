@@ -252,6 +252,13 @@ class QualityValidationTest(unittest.TestCase):
 
         self.assertIn("ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING", sql)
 
+    def test_dwd_trade_date_source_rows_are_limited_since_2010(self):
+        price_sql = DWDManager().render_sync_sql("dwd_stock_eod_price")
+        income_sql = DWDManager().render_sync_sql("dwd_stock_income")
+
+        self.assertIn("src.`trade_date` >= toDate32('2010-01-01')", price_sql)
+        self.assertNotIn("src.`trade_date` >= toDate32('2010-01-01')", income_sql)
+
     def test_dwd_dividend_sql_uses_source_key_and_announcement_visibility(self):
         sql = DWDManager().render_sync_sql("dwd_stock_dividend")
         availability_expr = (

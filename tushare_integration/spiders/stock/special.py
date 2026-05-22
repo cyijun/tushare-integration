@@ -1,7 +1,5 @@
 import datetime
 
-import pandas as pd
-
 from tushare_integration.spiders.tushare import DailySpider, TSCodeSpider, TushareSpider
 
 
@@ -30,11 +28,27 @@ class CyqChipsSpider(TushareSpider):
 
     @staticmethod
     def _format_trade_date(value):
-        if value is None or pd.isna(value):
+        parsed = DailySpider.parse_date_value(value)
+        if parsed is None:
             return None
-        if hasattr(value, "strftime"):
-            return value.strftime("%Y-%m-%d")
-        return str(value)
+        return parsed.strftime("%Y-%m-%d")
+
+    def _get_min_trade_date(self, list_date=None):
+        min_cal_date = DailySpider.parse_date_value(self.custom_settings.get("MIN_CAL_DATE"))
+        parsed_list_date = DailySpider.parse_date_value(list_date)
+
+        if min_cal_date is None:
+            return parsed_list_date
+        if parsed_list_date is None:
+            return min_cal_date
+        return max(min_cal_date, parsed_list_date)
+
+    @staticmethod
+    def _get_delist_date(delist_date=None):
+        parsed_delist_date = DailySpider.parse_date_value(delist_date)
+        if parsed_delist_date in (None, datetime.date(1970, 1, 1)):
+            return None
+        return parsed_delist_date
 
     def get_latest_trade_date(self, conn, ts_code: str):
         latest_trade_date = conn.query_df(
@@ -48,9 +62,11 @@ class CyqChipsSpider(TushareSpider):
             return None
         return self._format_trade_date(latest_trade_date["latest_trade_date"].iloc[0])
 
-    def get_missing_trade_dates(self, conn, ts_code: str):
+    def get_missing_trade_dates(self, conn, ts_code: str, list_date=None, delist_date=None):
         db_name = self.spider_settings.database.db_name
-        min_cal_date = self.custom_settings.get("MIN_CAL_DATE")
+        min_trade_date = self._format_trade_date(self._get_min_trade_date(list_date))
+        max_trade_date = self._format_trade_date(self._get_delist_date(delist_date))
+        delist_condition = f"AND trade_date <= '{max_trade_date}'" if max_trade_date else ""
 
         if self.custom_settings.get("BACKFILL_GAPS", False):
             incremental_condition = f"""
@@ -68,7 +84,8 @@ class CyqChipsSpider(TushareSpider):
                 SELECT DISTINCT trade_date
                 FROM {db_name}.daily
                 WHERE ts_code = '{ts_code}'
-                AND trade_date >= '{min_cal_date}'
+                AND trade_date >= '{min_trade_date}'
+                {delist_condition}
                 {incremental_condition}
                 ORDER BY trade_date
             """
@@ -76,10 +93,15 @@ class CyqChipsSpider(TushareSpider):
 
     def start_requests(self):
         conn = self.get_db_engine()
-        for ts_code in conn.query_df(
-            f""" SELECT ts_code FROM {self.spider_settings.database.db_name}.{self.custom_settings.get("BASIC_TABLE")}"""
-        )['ts_code']:
-            trade_dates = self.get_missing_trade_dates(conn, ts_code)
+        stock_basic = conn.query_df(
+            f"""
+                SELECT ts_code, list_date, delist_date
+                FROM {self.spider_settings.database.db_name}.{self.custom_settings.get("BASIC_TABLE")}
+                WHERE ts_code != ''
+            """
+        )
+        for row in stock_basic.itertuples(index=False):
+            trade_dates = self.get_missing_trade_dates(conn, row.ts_code, row.list_date, row.delist_date)
 
             if trade_dates.empty:
                 continue

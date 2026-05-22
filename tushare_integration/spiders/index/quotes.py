@@ -1,10 +1,7 @@
 import datetime
 
-import pandas as pd
-
-from tushare_integration.items import TushareIntegrationItem
 from tushare_integration.spiders.stock.quotes import StockMonthlySpider, StockWeeklySpider
-from tushare_integration.spiders.tushare import DailySpider, TushareSpider
+from tushare_integration.spiders.tushare import DailySpider
 
 
 class IndexDailySpider(DailySpider):
@@ -72,72 +69,75 @@ class IndexWeeklySpider(StockWeeklySpider):
 
 class IndexWeightSpider(DailySpider):
     name = "index/quotes/index_weight"
-    page_limit = 3000
     custom_settings = {
         "TABLE_NAME": "index_weight",
         "BASIC_TABLE": "index_basic",
         "MIN_CAL_DATE": "2005-04-08",  # 根据实际数据情况设置合适的起始日期
     }
 
+    @staticmethod
+    def iter_month_ranges(start_date: datetime.date, end_date: datetime.date):
+        month_start = start_date.replace(day=1)
+        while month_start <= end_date:
+            if month_start.month == 12:
+                next_month = datetime.date(month_start.year + 1, 1, 1)
+            else:
+                next_month = datetime.date(month_start.year, month_start.month + 1, 1)
+
+            month_end = min(next_month - datetime.timedelta(days=1), end_date)
+            yield month_start, month_end
+            month_start = next_month
+
+    @staticmethod
+    def index_existed_in_month(index_row, month_start: datetime.date, month_end: datetime.date) -> bool:
+        list_date = DailySpider.parse_date_value(getattr(index_row, "list_date", None))
+        base_date = DailySpider.parse_date_value(getattr(index_row, "base_date", None))
+        exp_date = DailySpider.parse_date_value(getattr(index_row, "exp_date", None))
+
+        start_date = list_date or base_date
+        if start_date and start_date > month_end:
+            return False
+
+        if exp_date and exp_date != datetime.date(1970, 1, 1) and exp_date < month_start:
+            return False
+
+        return True
+
+    @staticmethod
+    def get_request_end_date() -> datetime.date:
+        return datetime.date.today()
+
     def start_requests(self):
         conn = self.get_db_engine()
         db_name = self.spider_settings.database.db_name
         start_date = self.get_incremental_start_date(conn, "trade_date")
+        end_date = self.get_request_end_date()
 
-        cal_dates = conn.query_df(
+        index_list = conn.query_df(
             f"""
-                SELECT DISTINCT cal_date
-                FROM {db_name}.trade_cal
-                WHERE cal_date NOT IN (
-                    SELECT trade_date FROM {db_name}.{self.get_table_name()}
-                    WHERE trade_date >= '{start_date}'
-                )
-                  AND is_open = 1
-                  AND cal_date >= '{start_date}'
-                  AND cal_date <= today()
-                  AND exchange = 'SSE'
-                ORDER BY cal_date
+                SELECT ts_code, base_date, list_date, exp_date
+                FROM {db_name}.{self.custom_settings.get('BASIC_TABLE')}
+                WHERE ts_code != ''
+                ORDER BY ts_code
                 """
         )
 
-        if cal_dates.empty:
+        if index_list.empty or start_date > end_date:
             return
 
-        for cal_date in cal_dates["cal_date"]:
-            trade_date = cal_date.strftime("%Y%m%d")
-            yield self.get_scrapy_request(
-                params={'trade_date': trade_date, 'offset': 0, 'limit': self.page_limit},
-                meta={'trade_date': trade_date, 'offset': 0, 'limit': self.page_limit, 'index_weight_pages': []},
-            )
+        month_ranges = list(self.iter_month_ranges(start_date, end_date))
+        for index_row in index_list.itertuples(index=False):
+            for month_start, month_end in month_ranges:
+                if not self.index_existed_in_month(index_row, month_start, month_end):
+                    continue
 
-    def parse(self, response, **kwargs):
-        page = self.parse_response(response, **kwargs)
-        pages = response.meta.get('index_weight_pages', [])
-
-        if page["data"].empty:
-            if pages:
-                yield TushareIntegrationItem(data=pd.concat(pages, ignore_index=True))
-            return
-
-        pages.append(page["data"])
-        trade_date = response.meta['trade_date']
-        offset = response.meta.get('offset', 0)
-        limit = response.meta.get('limit', self.page_limit)
-
-        if len(page["data"]) < limit:
-            yield TushareIntegrationItem(data=pd.concat(pages, ignore_index=True))
-            return
-
-        next_offset = offset + limit
-        yield self.get_scrapy_request(
-            params={'trade_date': trade_date, 'offset': next_offset, 'limit': limit},
-            meta={
-                'trade_date': trade_date,
-                'offset': next_offset,
-                'limit': limit,
-                'index_weight_pages': pages,
-            },
-        )
+                yield self.get_scrapy_request(
+                    params={
+                        "index_code": index_row.ts_code,
+                        "start_date": month_start.strftime("%Y%m%d"),
+                        "end_date": month_end.strftime("%Y%m%d"),
+                    }
+                )
 
 
 class SzDailyInfoSpider(DailySpider):

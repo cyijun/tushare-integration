@@ -78,6 +78,7 @@ class FactorWideMatrixTest(unittest.TestCase):
         self.assertIn('"volume"', sql)
         self.assertIn('"vwap"', sql)
         self.assertIn('"turnover"', sql)
+        self.assertIn("WHERE trade_date >= toDate32('2010-01-01')", sql)
         self.assertNotIn("Mean($close", sql)
         self.assertNotIn("Corr($close", sql)
 
