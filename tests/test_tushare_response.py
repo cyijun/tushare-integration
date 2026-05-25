@@ -308,6 +308,29 @@ class TushareResponseTest(unittest.TestCase):
         self.assertIn("trade_date >= '2020-07-27'", fake_db.queries[-1])
         self.assertIn("trade_date <= '2022-04-26'", fake_db.queries[-1])
 
+    def test_cyq_chips_start_requests_uses_current_stock_code(self):
+        spider = CyqChipsSpider()
+        spider.spider_settings = DummySpiderSettings(database=SimpleNamespace(db_name="default"))
+        fake_db = DummyDB(
+            [
+                pd.DataFrame(
+                    {
+                        "ts_code": ["000001.SZ"],
+                        "list_date": [pd.Timestamp("1991-04-03")],
+                        "delist_date": [pd.NaT],
+                    }
+                ),
+                pd.DataFrame({"latest_trade_date": [pd.Timestamp("2026-05-08")]}),
+                pd.DataFrame({"trade_date": pd.to_datetime(["2026-05-11"])}),
+            ]
+        )
+
+        with mock.patch.object(spider, "get_db_engine", return_value=fake_db):
+            requests = list(spider.start_requests())
+
+        request_params = [json.loads(request.body.decode("utf-8"))["params"] for request in requests]
+        self.assertEqual(request_params, [{"ts_code": "000001.SZ", "trade_date": "20260511"}])
+
     def test_cyq_chips_primary_key_preserves_price_buckets(self):
         spider = CyqChipsSpider()
 

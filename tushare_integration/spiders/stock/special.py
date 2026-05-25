@@ -107,7 +107,7 @@ class CyqChipsSpider(TushareSpider):
                 continue
 
             for trade_date in trade_dates['trade_date'].dt.date:
-                yield self.get_scrapy_request({"ts_code": ts_code, "trade_date": trade_date.strftime("%Y%m%d")})
+                yield self.get_scrapy_request({"ts_code": row.ts_code, "trade_date": trade_date.strftime("%Y%m%d")})
 
 
 class StkFactorSpider(DailySpider):
