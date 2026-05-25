@@ -45,7 +45,7 @@ class DatabaseConfig(BaseSettings):
     )
 
     host: Annotated[str, env_variable('DB_HOST')] = Field(..., description='数据库主机')
-    port: Annotated[int, env_variable('DB_HOST')] = Field(..., description='数据库端口')
+    port: Annotated[int, env_variable('DB_PORT')] = Field(..., description='数据库端口')
     user: Annotated[str, env_variable('DB_USER')] = Field(..., description='数据库用户名')
     password: Annotated[str, env_variable('DB_PASSWORD')] = Field('', description='数据库密码')
 
@@ -224,10 +224,20 @@ class TushareIntegrationSettings(BaseSettings):
         return env_settings, init_settings, file_secret_settings
 
 
+def load_settings():
+    """惰性加载配置，避免模块导入时硬读取config.yaml"""
+    try:
+        with open('config.yaml', 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f.read())
+        settings = TushareIntegrationSettings.model_validate(config).get_settings()
+    except FileNotFoundError:
+        settings = TushareIntegrationSettings().get_settings()
+    return settings
+
+
 # 保持scrapy兼容
-for key, value in (
-    TushareIntegrationSettings.model_validate(yaml.safe_load(open('config.yaml', 'r', encoding='utf-8').read()))
-    .get_settings()
-    .items()
-):
-    locals()[key] = value
+try:
+    for key, value in load_settings().items():
+        locals()[key] = value
+except Exception:
+    pass

@@ -73,11 +73,10 @@ class TushareIntegrationFillNAPipeline(BasePipeline):
         item["latest_data"] = data.copy(deep=True)
 
         for column in self.schema["columns"]:
-            if column.get("default", None) is None:
-                column["default"] = self.get_default_by_data_type(column["data_type"])
+            default = column.get("default") or self.get_default_by_data_type(column["data_type"])
             # 需要特殊处理NaT,Pandas的fillna方法不支持NaT
             item["latest_data"][column["name"]] = (
-                item["latest_data"][column["name"]].replace({pd.NaT: None}).fillna(column["default"])
+                item["latest_data"][column["name"]].replace({pd.NaT: None}).fillna(default)
             )
 
         return item
@@ -121,7 +120,7 @@ class TransformDTypePipeline(BasePipeline):
                 numeric_series = pd.to_numeric(series, errors="coerce")
                 if preserve_nulls:
                     return numeric_series.map(lambda value: None if cls.is_nullish(value) else int(value))
-                return numeric_series.fillna(int(default_value)).astype(int)
+                return numeric_series.fillna(int(default_value)).astype('Int64')
             case "date":
                 date_series = pd.to_datetime(series, format="mixed", errors="coerce").dt.date
                 if preserve_nulls:
@@ -262,6 +261,10 @@ class TushareIntegrationDataPipeline(BasePipeline):
         return item
 
 
+    def close_spider(self, spider):
+        self.db_engine.close()
+
+
 class RecordLogPipeline(BasePipeline):
     def __init__(self, settings, *args, **kwargs) -> None:
         super().__init__(settings, *args, **kwargs)
@@ -272,10 +275,12 @@ class RecordLogPipeline(BasePipeline):
 
         self.count: int = 0
         self.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.log_schema = self.get_log_schema()
         self.create_log_table()
 
-    def create_log_table(self):
-        schema = {
+    @staticmethod
+    def get_log_schema():
+        return {
             'primary_key': ['batch_id'],
             'columns': [
                 {
@@ -311,7 +316,8 @@ class RecordLogPipeline(BasePipeline):
             ],
         }
 
-        self.db_engine.create_table(self.table_name, schema)
+    def create_log_table(self):
+        self.db_engine.create_table(self.table_name, self.log_schema)
 
     def open_spider(self, spider):
         super().open_spider(spider)
@@ -333,7 +339,8 @@ class RecordLogPipeline(BasePipeline):
 
         statistics_data[['start_time', 'end_time']] = statistics_data[['start_time', 'end_time']].apply(pd.to_datetime)
 
-        self.db_engine.insert(self.table_name, self.schema, statistics_data)
+        self.db_engine.insert(self.table_name, self.log_schema, statistics_data)
+        self.db_engine.close()
 
     def process_item(self, item, spider):
         self.count += len(item["data"])

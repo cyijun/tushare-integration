@@ -69,9 +69,10 @@ class TushareSpider(scrapy.Spider):
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super().from_crawler(crawler, *args, **kwargs)
-        spider.spider_settings = TushareIntegrationSettings.model_validate(
-            yaml.safe_load(open('config.yaml', 'r', encoding='utf8').read())
-        )
+        with open('config.yaml', 'r', encoding='utf-8') as f:
+            spider.spider_settings = TushareIntegrationSettings.model_validate(
+                yaml.safe_load(f.read())
+            )
         spider.create_table()
         return spider
 
@@ -98,9 +99,13 @@ class TushareSpider(scrapy.Spider):
         return item
 
     def parse_response(self, response, **kwargs):
-        resp = json.loads(response.text)
+        try:
+            resp = json.loads(response.text)
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse JSON from {self.get_api_name()}: {response.text[:200]}")
+            raise RuntimeError(f"Non-JSON response: {e}")
 
-        if resp["code"] != 0:
+        if resp.get("code") != 0:
             msg = resp.get("msg", "")
             if self.is_empty_data_response(resp):
                 logging.info(
@@ -179,7 +184,7 @@ class TushareSpider(scrapy.Spider):
         return code // 100 == 402
 
     # 搞个函数，直接使用requests发起请求
-    def request_with_requests(self, params: dict | None = None, meta: dict | None = None) -> TushareIntegrationItem:
+    def request_with_requests(self, params: dict | None = None, meta: dict | None = None, timeout: float = 60.0) -> TushareIntegrationItem:
         retry_times = getattr(self.spider_settings, "retry_times", 0)
         retry_delay = max(60, getattr(self.spider_settings, "retry_delay", 60))
 
@@ -197,6 +202,7 @@ class TushareSpider(scrapy.Spider):
                 headers={
                     "Content-Type": "application/json",
                 },
+                timeout=timeout,
             )
 
             if self.is_rate_limit_response(response) and retry_count < retry_times:

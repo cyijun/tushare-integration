@@ -4,12 +4,14 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import json
-import time
+import logging
 
 # useful for handling different item types with a single interface
 from scrapy import signals
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.utils.response import response_status_message
+from twisted.internet import reactor
+from twisted.internet.defer import Deferred
 
 
 class TushareIntegrationSpiderMiddleware:
@@ -112,27 +114,35 @@ class TushareRetryDownloaderMiddleware(RetryMiddleware):
         self.retry_delay = settings.getfloat("RETRY_DELAY")
         self.rate_limit_retry_delay = max(60, self.retry_delay)
 
+    def _retry_with_delay(self, request, reason, spider):
+        deferred = Deferred()
+
+        def _do_retry():
+            result = self._retry(request, reason, spider) or request
+            deferred.callback(result)
+
+        reactor.callLater(self.retry_delay, _do_retry)
+        return deferred
+
     def process_response(self, request, response, spider):
         if response.status in self.retry_http_codes:
-            time.sleep(self.retry_delay)
             reason = response_status_message(response.status)
-            return self._retry(request, reason, spider) or response
+            return self._retry_with_delay(request, reason, spider)
 
         try:
-            payload = json.loads(response.text)
+            resp_data = json.loads(response.text)
         except json.JSONDecodeError:
-            return response
+            logging.warning(f"Non-JSON response from {request.url}: {response.text[:200]}")
+            reason = "non-JSON response"
+            return self._retry_with_delay(request, reason, spider)
 
-        try:
-            code = int(payload.get("code", 0))
-        except (TypeError, ValueError):
-            return response
-
-        if code != 0:
+        code = resp_data.get("code")
+        if code is not None and code != 0:
             # 如果是402XX，说明是限流
             if code // 100 == 402:
-                time.sleep(self.rate_limit_retry_delay)
                 reason = "rate limit"
-                return self._retry(request, reason, spider) or response
+            else:
+                reason = f"Tushare error code {code}"
+            return self._retry_with_delay(request, reason, spider)
 
         return response

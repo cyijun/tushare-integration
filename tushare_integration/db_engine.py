@@ -9,27 +9,19 @@ from tushare_integration.settings import TushareIntegrationSettings
 class DBEngine(object):
     def __init__(self, settings: TushareIntegrationSettings):
         self.settings = settings
-        self.templates = {
-            'create': jinja2.Template(
-                open(
-                    f'tushare_integration/schema/template/{self.settings.database.db_type.lower()}/table.jinja2'
-                ).read()
-            ),
-            'insert': jinja2.Template(
-                open(
-                    f'tushare_integration/schema/template/{self.settings.database.db_type.lower()}/insert.jinja2'
-                ).read()
-            ),
-            'upsert': jinja2.Template(
-                open(
-                    f'tushare_integration/schema/template/{self.settings.database.db_type.lower()}/upsert.jinja2'
-                ).read()
-            ),
-        }
+        self.templates = {}
+        self._load_templates()
 
         self.functions = {
             'to_date': 'to_date',
         }
+
+    def _load_templates(self):
+        db_type = self.settings.database.db_type.lower()
+        template_dir = f'tushare_integration/schema/template/{db_type}'
+        for name in ('table', 'insert', 'upsert'):
+            with open(f'{template_dir}/{name}.jinja2', 'r', encoding='utf-8') as f:
+                self.templates[name] = jinja2.Template(f.read())
 
     def insert(self, table_name: str, schema: dict, data: pd.DataFrame) -> None:
         raise NotImplementedError
@@ -46,11 +38,26 @@ class DBEngine(object):
     def query(self, sql: str) -> pd.DataFrame:
         raise NotImplementedError
 
+    def close(self) -> None:
+        raise NotImplementedError
+
 
 class SQLAlchemyEngine(DBEngine):
     def __init__(self, settings: TushareIntegrationSettings):
         super().__init__(settings)
-        self.conn = create_engine(self.settings.database.get_uri()).connect()
+        self._engine = create_engine(self.settings.database.get_uri())
+        self._conn = None
+
+    @property
+    def conn(self):
+        if self._conn is None:
+            self._conn = self._engine.connect()
+        return self._conn
+
+    def close(self) -> None:
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
 
     def insert(self, table_name: str, schema: dict, data: pd.DataFrame) -> None:
         column_bindings = self.build_column_bindings(data.columns.tolist())
@@ -90,7 +97,7 @@ class SQLAlchemyEngine(DBEngine):
     def create_table(self, table_name: str, schema: dict) -> None:
         self.conn.execute(
             statement=text(
-                self.templates['create'].render(
+                self.templates['table'].render(
                     db_name=self.settings.database.db_name,
                     table_name=table_name,
                     **schema,
@@ -121,8 +128,8 @@ class ApacheDorisEngine(SQLAlchemyEngine):
 class ClickhouseEngine(DBEngine):
     def __init__(self, settings: TushareIntegrationSettings, send_receive_timeout: int | None = None):
         super().__init__(settings)
-
-        client_kwargs = {
+        self._client = None
+        self._client_kwargs = {
             "host": settings.database.host,
             "port": settings.database.port,
             "username": settings.database.user,
@@ -131,11 +138,20 @@ class ClickhouseEngine(DBEngine):
             "apply_server_timezone": True,
         }
         if send_receive_timeout is not None:
-            client_kwargs["send_receive_timeout"] = send_receive_timeout
-
-        self.client = clickhouse_connect.get_client(**client_kwargs)
+            self._client_kwargs["send_receive_timeout"] = send_receive_timeout
 
         self.functions['to_date'] = 'toDate'
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = clickhouse_connect.get_client(**self._client_kwargs)
+        return self._client
+
+    def close(self) -> None:
+        if self._client is not None:
+            self._client.close()
+            self._client = None
 
     def insert(self, table_name: str, schema: dict, data: pd.DataFrame) -> None:
         self.client.insert_df(table_name, data)
@@ -145,7 +161,7 @@ class ClickhouseEngine(DBEngine):
 
     def create_table(self, table_name: str, schema: dict) -> None:
         self.client.query(
-            self.templates['create'].render(
+            self.templates['table'].render(
                 db_name=self.settings.database.db_name,
                 table_name=table_name,
                 **schema,
