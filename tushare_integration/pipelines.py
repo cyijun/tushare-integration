@@ -89,8 +89,12 @@ class TransformDTypePipeline(BasePipeline):
                     data[column["name"]] = data[column["name"]].astype(float)
                 case "date":
                     data[column["name"]] = pd.to_datetime(data[column["name"]], format='mixed', errors='coerce').dt.date
+                    default = column.get("default", "1970-01-01")
+                    data[column["name"]] = data[column["name"]].fillna(pd.to_datetime(default).date())
                 case "datetime":
                     data[column["name"]] = pd.to_datetime(data[column["name"]])
+                    default = column.get("default", "1970-01-01 00:00:00")
+                    data[column["name"]] = data[column["name"]].fillna(pd.to_datetime(default))
                 case 'json':
                     data[column["name"]] = data[column["name"]].apply(lambda x: '{}' if pd.isna(x) else x)
                 case _:

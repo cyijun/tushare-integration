@@ -53,7 +53,6 @@ cronjob:
       - name: stock/basic/stk_managers
       - name: stock/basic/stk_rewards
       - name: stock/basic/new_share
-      - name: stock/basic/stk_premarket
       - name: stock/basic/bak_basic
   - cron_expr: UnSupported
     name: stock/financial

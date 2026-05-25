@@ -4,6 +4,7 @@ version = "0.1.7"
 description = ""
 authors = [{ "name" = "zhangbingchen", "email" = "1731259685@qq.com" }]
 readme = "README.md"
+requires-python = ">=3.12"
 dependencies = [
 "clickhouse-connect==0.8.8",
 "cryptography==44.0.0",
@@ -25,6 +26,7 @@ dependencies = [
 "typer==0.14.0",
 "typing-extensions==4.12.2",
 "zstandard==0.23.0",
+"twisted==24.10.0",
 ]
 
 [tool.black]

@@ -82,7 +82,7 @@ class SQLAlchemyEngine(DBEngine):
     def create_table(self, table_name: str, schema: dict) -> None:
         self.conn.execute(
             statement=text(
-                self.templates['create'].render(
+                self.templates['table'].render(
                     db_name=self.settings.database.db_name,
                     table_name=table_name,
                     **schema,
@@ -144,7 +144,7 @@ class ClickhouseEngine(DBEngine):
 
     def create_table(self, table_name: str, schema: dict) -> None:
         self.client.query(
-            self.templates['create'].render(
+            self.templates['table'].render(
                 db_name=self.settings.database.db_name,
                 table_name=table_name,
                 **schema,

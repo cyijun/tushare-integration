@@ -104,7 +104,7 @@ To add a new database: create a template directory + register the engine class i
 
 ### Deployment Artifacts
 
-- `Dockerfile` — Python 3.11 slim image; mounts `config.yaml` and `jobs.yaml` at runtime.
+- `Dockerfile` — Python 3.12 slim image; mounts `config.yaml` and `jobs.yaml` at runtime.
 - `deploy/tushare-integration/` — Helm chart for Kubernetes CronJobs. When `parallel_mode: true`, each spider becomes its own CronJob; otherwise a job groups spiders into one CronJob and runs them sequentially.
 - `.github/workflows/` — Kaniko-based image build on tag push; MkDocs deploy to GitHub Pages on `main` push.
 

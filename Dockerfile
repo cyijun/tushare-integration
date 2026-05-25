@@ -1,4 +1,4 @@
-FROM python:3.11.9-slim-bullseye
+FROM python:3.12.10-slim-bullseye
 
 ARG PIP_SOURCE=https://pypi.org/simple
 
