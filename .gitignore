@@ -161,3 +161,5 @@ cython_debug/
 .vscode/
 deploy/values.yaml
 build.sh
+数据接口文档/
+.DS_Store
