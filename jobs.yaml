@@ -102,20 +102,27 @@ cronjob:
       - name: stock/quotes/adj_factor
       - name: stock/quotes/suspend_d
       - name: stock/quotes/hsgt_top10
-      - name: stock/quotes/moneyflow
-      - name: stock/quotes/moneyflow_hsgt
       - name: stock/quotes/stk_limit
       - name: stock/quotes/daily_basic
       - name: stock/quotes/ggt_top10
       - name: stock/quotes/ggt_daily
       - name: stock/quotes/bak_daily
-      - name: stock/quotes/stk_mins
+  - cron_expr: UnSupported
+    name: stock/moneyflow
+    spiders:
+      - name: stock/moneyflow/moneyflow
+      - name: stock/moneyflow/moneyflow_hsgt
+      - name: stock/moneyflow/moneyflow_dc
+      - name: stock/moneyflow/moneyflow_ind_dc
+      - name: stock/moneyflow/moneyflow_ind_ths
+      - name: stock/moneyflow/moneyflow_ths
+      - name: stock/moneyflow/moneyflow_mkt_dc
   - cron_expr: UnSupported
     name: stock/special
     spiders:
-      - name: stock/special/report_rc
+      # - name: stock/special/report_rc  # 权限限制，8000积分才能正式使用，暂屏蔽
       - name: stock/special/cyq_perf
-      - name: stock/special/cyq_chips
+      # - name: stock/special/cyq_chips  # 频率限制严重，5000积分200次/分钟，暂屏蔽
       - name: stock/special/stk_factor
       - name: stock/special/ccass_hold
       - name: stock/special/ccass_hold_detail

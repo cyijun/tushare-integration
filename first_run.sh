@@ -43,7 +43,6 @@ jobs=(
     "stock/market"
     "stock/margin"
     "stock/special"
-    "stock/limit"
     "index/basic"
     "index/quotes"
     "index/sw"

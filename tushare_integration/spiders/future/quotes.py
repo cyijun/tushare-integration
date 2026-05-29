@@ -84,7 +84,8 @@ class FutWeeklyDetail(DailySpider):
         # 生成历史所有的周编号，从201010开始
         weeks = [str(y) + str(w).zfill(2) for y in range(2010, datetime.datetime.now().year + 1) for w in range(1, 53)]
         # 去掉已经采集的周编号
-        weeks = list(set(weeks) - set(df['week'].tolist()))
+        existing_weeks = set(df['week'].tolist()) if 'week' in df.columns else set()
+        weeks = list(set(weeks) - existing_weeks)
         # 生成请求
         for week in weeks:
             yield self.get_scrapy_request(params={"week": week})

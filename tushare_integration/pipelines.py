@@ -68,8 +68,12 @@ class TushareIntegrationFillNAPipeline(BasePipeline):
 
         for column in self.schema["columns"]:
             default = column.get("default") or self.get_default_by_data_type(column["data_type"])
-            # 需要特殊处理NaT,Pandas的fillna方法不支持NaT
-            data[column["name"]] = data[column["name"]].replace({pd.NaT: None}).fillna(default)
+            # 如果schema中定义的列在API返回数据中不存在，则创建该列并填充默认值
+            if column["name"] not in data.columns:
+                data[column["name"]] = default
+            else:
+                # 需要特殊处理NaT,Pandas的fillna方法不支持NaT
+                data[column["name"]] = data[column["name"]].replace({pd.NaT: None}).fillna(default)
 
         return item
 
@@ -84,7 +88,7 @@ class TransformDTypePipeline(BasePipeline):
                 case "float":
                     data[column["name"]] = data[column["name"]].astype(float)
                 case "int":
-                    data[column["name"]] = data[column["name"]].astype('Int64')
+                    data[column["name"]] = pd.to_numeric(data[column["name"]], errors='coerce').astype('Int64')
                 case "number":
                     data[column["name"]] = data[column["name"]].astype(float)
                 case "date":

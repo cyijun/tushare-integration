@@ -3,8 +3,8 @@ api_name: moneyflow_ind_dc
 name: moneyflow_ind_dc
 comment: 板块资金流向（DC）
 dependencies:
-  - stock_basic
-  - trade_cal
+  - stock/basic/stock_basic
+  - stock/basic/trade_cal
 primary_key:
   - ts_code
   - trade_date

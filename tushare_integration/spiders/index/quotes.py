@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import pandas as pd
 
@@ -117,9 +118,14 @@ class IndexWeightSpider(DailySpider):
         limit = 3000
 
         while True:
-            parsed_data = self.request_with_requests(
-                params={'trade_date': trade_date, 'offset': offset, 'limit': limit}
-            )
+            try:
+                parsed_data = self.request_with_requests(
+                    params={'trade_date': trade_date, 'offset': offset, 'limit': limit}
+                )
+            except RuntimeError as e:
+                # Tushare 在 offset 超过实际数据量上限时会返回"查询数据失败"
+                logging.warning(f"index_weight pagination stopped at offset={offset} for {trade_date}: {e}")
+                break
             if parsed_data["data"].empty:
                 break
             all_data.append(parsed_data["data"])

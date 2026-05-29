@@ -3,8 +3,8 @@ api_name: moneyflow_mkt_dc
 name: moneyflow_mkt_dc
 comment: 大盘资金流向（DC）
 dependencies:
-  - stock_basic
-  - trade_cal
+  - stock/basic/stock_basic
+  - stock/basic/trade_cal
 primary_key:
   - trade_date
 indexes: []
@@ -19,7 +19,7 @@ columns:
     length: 0
     default: "0.0"
     comment: 上证收盘价（元）
-  - name: ptc_change_sh
+  - name: pct_change_sh
     data_type: float
     length: 0
     default: "0.0"

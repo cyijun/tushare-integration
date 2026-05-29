@@ -2,7 +2,8 @@ id: 180
 api_name: ths_member
 name: ths_member
 comment: 同花顺概念板块成分
-dependencies: []
+dependencies:
+  - index/ths/ths_index
 primary_key:
 - ts_code
 - code

@@ -164,3 +164,9 @@ deploy/values.yaml
 build.sh
 数据接口文档/
 .DS_Store
+# Logs and runtime state
+logs/
+first_run_state.txt
+
+# Local Helm values with sensitive info
+deploy/tushare-integration/values.yaml

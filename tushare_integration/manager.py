@@ -69,9 +69,8 @@ class CrawlManager(object):
             jobs = yaml.safe_load(f.read())
         for job in jobs['cronjob']:
             if job['name'] == job_name:
-                return list(
-                    set(list(itertools.chain(*[self.list_spiders(spider['name']) for spider in job['spiders']])))
-                )
+                spiders = list(itertools.chain(*[self.list_spiders(spider['name']) for spider in job['spiders']]))
+                return list(dict.fromkeys(spiders))
         raise ValueError(f"Job {job_name} not found")
 
     def run_spiders_in_sequence(self, spiders: list[str]):
