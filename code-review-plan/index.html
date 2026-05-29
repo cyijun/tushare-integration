@@ -1,0 +1,1212 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Tushare Integration 代码修复计划 - Tushare Pro Integration</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tushare-integration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Tushare Pro Integration" class="md-header__button md-logo" aria-label="Tushare Pro Integration" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Tushare Pro Integration
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tushare Integration 代码修复计划
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Tushare Pro Integration" class="md-nav__button md-logo" aria-label="Tushare Pro Integration" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Tushare Pro Integration
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    项目介绍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安装
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    使用方式
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置文件
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../develop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发指南
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        修复原则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-p0-1-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: P0 紧急修复（预计 1-2 天）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: P0 紧急修复（预计 1-2 天）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 修复数据库连接泄漏 (#2, #3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-sleep-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 替换阻塞式sleep为异步延迟 (#4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-json-5-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 添加JSON解析异常保护 (#5, #6)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 消除同步阻塞请求 (#7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-int-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.5 修复int类型转换崩溃 (#10)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.6 修复日期静默数据损坏 (#11)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-bug-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.7 修复飞书报告器缩进bug (#12)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#18-schema-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.8 修复记录日志schema误用 (#13)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#19-webhook-ssrf-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.9 修复飞书Webhook SSRF风险 (#15)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#110-9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.10 修复配置验证错误 (#9)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-2-p1-2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: P1 安全与正确性修复（预计 2-3 天）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: P1 安全与正确性修复（预计 2-3 天）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-sql-f-string-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 SQL注入防护 - f-string参数化 (#1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-sql-jinja2-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 SQL注入防护 - Jinja2模板转义 (#2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 敏感信息配置安全 (#14)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 修复模块加载时硬读取配置 (#8)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-reporterloader-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 ReporterLoader动态导入安全 (#16)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-managerpy-sql-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 修复manager.py SQL拼接 (#17)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 跨数据库日期函数兼容 (#19)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-futholdingspider-sql-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.8 修复FutHoldingSpider SQL (#25)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-3-p2-2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: P2 稳定性与质量改进（预计 2-3 天）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: P2 稳定性与质量改进（预计 2-3 天）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-22-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 异常处理与事务回滚 (#22, #30)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-20-35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 重试策略优化 (#20, #35)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 信号处理修复 (#31)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 文件句柄关闭 (#26)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-schema-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 消除schema修改副作用 (#23)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-stockmin-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 StockMin条数检查优化 (#24)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-meta-33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 meta合并保护 (#33)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-import-34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.8 清理未使用import (#34)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-4-2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: 工程化改进（预计 2-3 天）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: 工程化改进（预计 2-3 天）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 代码重复消除 (#36)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 添加测试覆盖 (#44)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-schema-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Schema验证机制 (#45)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-dockerfile-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Dockerfile优化 (#46)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-github-actions-40" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 GitHub Actions版本锁定 (#40)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-helm-chart-28-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 Helm Chart改进 (#28, #29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-37-38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 统一日志使用 (#37, #38)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 其他低严重修复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="tushare-integration">Tushare Integration 代码修复计划</h1>
+<blockquote>
+<p>对应审查报告: <a href="../code-review-issues/">code-review-issues.md</a>
+审查日期: 2026-05-25</p>
+</blockquote>
+<hr />
+<h2 id="_1">修复原则</h2>
+<ol>
+<li><strong>安全优先</strong>: SQL注入、SSRF、敏感信息泄露优先修复</li>
+<li><strong>稳定优先</strong>: 崩溃、连接泄漏、阻塞问题优先修复</li>
+<li><strong>兼容优先</strong>: 跨数据库兼容性修改需要兼容现有行为</li>
+<li><strong>最小改动</strong>: 每个修复独立commit，便于review和回滚</li>
+<li><strong>验证每个修复</strong>: 修复后运行对应spider或测试确认</li>
+</ol>
+<hr />
+<h2 id="phase-1-p0-1-2">Phase 1: P0 紧急修复（预计 1-2 天）</h2>
+<p><strong>目标</strong>: 修复影响系统稳定性和数据安全的高严重问题</p>
+<h3 id="11-2-3">1.1 修复数据库连接泄漏 (#2, #3)</h3>
+<p><strong>涉及文件</strong>: <code>db_engine.py</code>, <code>pipelines.py</code>, <code>spiders/tushare.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>DBEngine</code>基类添加<code>close()</code>抽象方法
+2. <code>SQLAlchemyEngine</code>实现<code>close()</code>调用<code>self.conn.close()</code>
+3. <code>ClickhouseEngine</code>实现<code>close()</code>（clickhouse-connect client通常无需显式关闭，但需确认）
+4. <code>TushareIntegrationDataPipeline</code>添加<code>close_spider()</code>调用<code>self.db_engine.close()</code>
+5. <code>RecordLogPipeline</code>添加<code>close_spider()</code>调用<code>self.db_engine.close()</code>
+6. <code>TushareSpider</code>在爬虫结束时关闭<code>db_engine</code></p>
+<p><strong>验证方式</strong>: 运行单个spider，通过数据库连接监控确认连接被释放</p>
+<h3 id="12-sleep-4">1.2 替换阻塞式sleep为异步延迟 (#4)</h3>
+<p><strong>涉及文件</strong>: <code>middlewares.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 移除<code>time.sleep(self.retry_delay)</code>
+2. 导入<code>from twisted.internet import reactor</code>
+3. 使用<code>deferLater(reactor, self.retry_delay, lambda: self._retry(request, reason, spider))</code>或设置<code>request.meta['download_delay'] = self.retry_delay</code>
+4. 确保返回Deferred而不是Response</p>
+<p><strong>验证方式</strong>: 运行并发spider，确认事件循环未被阻塞</p>
+<h3 id="13-json-5-6">1.3 添加JSON解析异常保护 (#5, #6)</h3>
+<p><strong>涉及文件</strong>: <code>middlewares.py</code>, <code>spiders/tushare.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>middlewares.py:120</code>处添加try/except包裹<code>json.loads(response.text)</code>
+2. 解析失败时按HTTP错误码路径重试
+3. <code>spiders/tushare.py:59</code>处先检查<code>response.status</code>，再try/except解析JSON
+4. 非JSON响应时记录日志并抛出可重试异常</p>
+<p><strong>验证方式</strong>: 模拟502/504响应，确认爬虫不crash且能重试</p>
+<h3 id="14-7">1.4 消除同步阻塞请求 (#7)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/tushare.py</code>, <code>spiders/stock/basic.py</code>, <code>spiders/index/quotes.py</code>, <code>spiders/index/sw.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>request_with_requests()</code>方法添加<code>timeout=(10, 30)</code>参数
+2. 优先方案: 将<code>StockNameChangeSpider</code>、<code>IndexWeightSpider</code>、<code>IndexMemberAllSpider</code>的分页逻辑改为使用Scrapy的meta+回调链
+3. 备选方案: 使用<code>crawler.engine.download()</code>或在线程池中执行requests</p>
+<p><strong>验证方式</strong>: 运行上述三个spider，确认事件循环未被阻塞</p>
+<h3 id="15-int-10">1.5 修复int类型转换崩溃 (#10)</h3>
+<p><strong>涉及文件</strong>: <code>pipelines.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>TransformDTypePipeline</code>中<code>"int"</code>分支改为<code>astype('Int64')</code>（pandas nullable int）
+2. 或在<code>astype(int)</code>前确保列中无NaN（FillNAPipeline后二次检查）</p>
+<p><strong>验证方式</strong>: 运行会返回含NaN int列的spider，确认不崩溃</p>
+<h3 id="16-11">1.6 修复日期静默数据损坏 (#11)</h3>
+<p><strong>涉及文件</strong>: <code>pipelines.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 移除将NaT硬编码替换为<code>1971-01-01</code>的逻辑
+2. 改为: 对不可解析日期记录warning日志，保留NaT/None
+3. 数据库INSERT时让数据库处理NULL（schema已定义DEFAULT）</p>
+<p><strong>验证方式</strong>: 检查数据库中日期列，确认无效日期为NULL而非<code>1971-01-01</code></p>
+<h3 id="17-bug-12">1.7 修复飞书报告器缩进bug (#12)</h3>
+<p><strong>涉及文件</strong>: <code>reporters.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 修正<code>if not self.webhook:</code>块内<code>return</code>的缩进
+2. 确保webhook为空时直接return，不构造body</p>
+<p><strong>验证方式</strong>: 空webhook配置运行，确认不报错且无请求发出</p>
+<h3 id="18-schema-13">1.8 修复记录日志schema误用 (#13)</h3>
+<p><strong>涉及文件</strong>: <code>pipelines.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>RecordLogPipeline</code>中保存日志表schema为实例变量<code>self.log_schema</code>
+2. <code>close_spider</code>中使用<code>self.log_schema</code>而非<code>self.schema</code></p>
+<p><strong>验证方式</strong>: 运行spider，确认日志表正确写入</p>
+<h3 id="19-webhook-ssrf-15">1.9 修复飞书Webhook SSRF风险 (#15)</h3>
+<p><strong>涉及文件</strong>: <code>reporters.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>send_report</code>中添加URL校验: <code>urlparse(self.webhook).netloc.endswith('open.feishu.cn')</code>
+2. <code>requests.post</code>添加<code>timeout=10</code>
+3. 校验响应状态码，非200时记录error日志</p>
+<p><strong>验证方式</strong>: 配置错误域名，确认请求被拦截</p>
+<h3 id="110-9">1.10 修复配置验证错误 (#9)</h3>
+<p><strong>涉及文件</strong>: <code>settings.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>DatabaseConfig.port</code>字段的<code>env_variable('DB_HOST')</code>改为<code>env_variable('DB_PORT')</code></p>
+<p><strong>验证方式</strong>: 设置<code>DB_PORT</code>环境变量，确认端口被正确覆盖</p>
+<hr />
+<h2 id="phase-2-p1-2-3">Phase 2: P1 安全与正确性修复（预计 2-3 天）</h2>
+<p><strong>目标</strong>: 修复SQL注入、配置安全、跨数据库兼容性问题</p>
+<h3 id="21-sql-f-string-1">2.1 SQL注入防护 - f-string参数化 (#1)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/stock/quotes.py</code>, <code>spiders/stock/special.py</code>, <code>spiders/index/quotes.py</code>, <code>manager.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>StockMin</code>中ts_code等参数改用SQL参数化查询
+2. <code>CyqChipsSpider</code>中ts_code参数化
+3. <code>IndexDailySpider</code>中查询index_basic使用参数化
+4. <code>manager.py:133</code>中batch_id使用参数化查询
+5. 对无法参数化的标识符（表名、列名）添加正则校验: <code>^[a-zA-Z_][a-zA-Z0-9_]*$</code></p>
+<p><strong>验证方式</strong>: 运行相关spider，确认SQL执行正常且不受注入影响</p>
+<h3 id="22-sql-jinja2-2">2.2 SQL注入防护 - Jinja2模板转义 (#2)</h3>
+<p><strong>涉及文件</strong>: <code>schema/template/*/table.jinja2</code>, <code>db_engine.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>db_engine.py</code>加载Jinja2模板时启用<code>autoescape=True</code>
+2. 对<code>db_name</code>、<code>table_name</code>、<code>column.name</code>等标识符添加正则校验函数
+3. 非法字符抛出<code>ValueError</code>
+4. 对<code>column.comment</code>等用户可能输入的内容确保转义</p>
+<p><strong>验证方式</strong>: 构造含特殊字符的schema，确认被拦截或正确转义</p>
+<h3 id="23-14">2.3 敏感信息配置安全 (#14)</h3>
+<p><strong>涉及文件</strong>: <code>config.yaml</code>, <code>.gitignore</code>, <code>deploy/</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>.gitignore</code>中添加<code>config.yaml</code>
+2. 复制当前<code>config.yaml</code>为<code>config.example.yaml</code>，敏感字段留空
+3. Helm chart中:
+   - 创建<code>templates/secret.yaml</code>用于存储敏感配置
+   - CronJob中通过<code>envFrom</code>或<code>env.valueFrom.secretKeyRef</code>注入敏感字段
+   - ConfigMap仅保留非敏感配置
+4. <code>values.yaml</code>中敏感字段添加注释警告</p>
+<p><strong>验证方式</strong>: <code>git status</code>确认config.yaml不被跟踪；Helm template渲染确认Secret正确生成</p>
+<h3 id="24-8">2.4 修复模块加载时硬读取配置 (#8)</h3>
+<p><strong>涉及文件</strong>: <code>settings.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 将模块底部的<code>for key, value in ...</code>循环移除
+2. 改为惰性属性或显式初始化函数
+3. 确保Scrapy settings兼容性不受影响</p>
+<p><strong>验证方式</strong>: 在config.yaml不存在的目录下<code>python -c "import tushare_integration.settings"</code>，确认不抛异常</p>
+<h3 id="25-reporterloader-16">2.5 ReporterLoader动态导入安全 (#16)</h3>
+<p><strong>涉及文件</strong>: <code>reporters.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 定义允许加载的类白名单<code>ALLOWED_REPORTERS</code>
+2. <code>get_reporters()</code>中校验配置中的类名是否在白名单中
+3. 不在白名单中时抛出<code>ValueError</code></p>
+<p><strong>验证方式</strong>: 配置非法reporter类名，确认被拦截</p>
+<h3 id="26-managerpy-sql-17">2.6 修复manager.py SQL拼接 (#17)</h3>
+<p><strong>涉及文件</strong>: <code>manager.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>get_report_content</code>中使用参数化查询传递batch_id
+2. 需要扩展DBEngine接口支持带参数的query_df</p>
+<p><strong>验证方式</strong>: 运行job，确认报告正确生成</p>
+<h3 id="27-19">2.7 跨数据库日期函数兼容 (#19)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/tushare.py</code>, <code>db_engine.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>DBEngine.functions</code>中已定义<code>to_date</code>，扩展添加<code>today</code>函数映射
+2. <code>ClickhouseEngine</code>: <code>today</code> -&gt; <code>today()</code>
+3. <code>MySQLEngine</code>/<code>ApacheDorisEngine</code>: <code>today</code> -&gt; <code>CURDATE()</code>
+4. <code>DailySpider</code>中使用<code>self.get_db_engine().functions.get('today', 'today()')</code>代替硬编码</p>
+<p><strong>验证方式</strong>: 在MySQL环境下运行DailySpider，确认SQL正常执行</p>
+<h3 id="28-futholdingspider-sql-25">2.8 修复FutHoldingSpider SQL (#25)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/future/quotes.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>FROM trade_cal</code>改为<code>FROM {db_name}.trade_cal</code></p>
+<p><strong>验证方式</strong>: 非default数据库运行，确认正常</p>
+<hr />
+<h2 id="phase-3-p2-2-3">Phase 3: P2 稳定性与质量改进（预计 2-3 天）</h2>
+<p><strong>目标</strong>: 修复异常处理、资源管理、代码质量等问题</p>
+<h3 id="31-22-30">3.1 异常处理与事务回滚 (#22, #30)</h3>
+<p><strong>涉及文件</strong>: <code>pipelines.py</code>, <code>commands.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>TushareIntegrationDataPipeline.process_item</code>添加try/except
+2. SQLAlchemy连接显式管理事务
+3. <code>commands.py</code>三个命令添加try/except，友好错误输出</p>
+<h3 id="32-20-35">3.2 重试策略优化 (#20, #35)</h3>
+<p><strong>涉及文件</strong>: <code>middlewares.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 402限流错误使用独立的重试计数器
+2. 实现指数退避: <code>delay = min(base_delay * 2^attempt, max_delay)</code>
+3. 显式传递<code>max_retry_times</code>参数</p>
+<h3 id="33-31">3.3 信号处理修复 (#31)</h3>
+<p><strong>涉及文件</strong>: <code>manager.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 移除全局<code>signal.signal</code>注册
+2. 使用Scrapy内置的<code>engine_stopped</code>信号</p>
+<h3 id="34-26">3.4 文件句柄关闭 (#26)</h3>
+<p><strong>涉及文件</strong>: <code>db_engine.py</code>, <code>pipelines.py</code>, <code>spiders/tushare.py</code>, <code>tests/create_tables.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 统一所有<code>open()</code>调用改为<code>with open(...) as f:</code></p>
+<h3 id="35-schema-23">3.5 消除schema修改副作用 (#23)</h3>
+<p><strong>涉及文件</strong>: <code>pipelines.py</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>get_default_by_data_type</code>返回值赋给局部变量，不修改原dict</p>
+<h3 id="36-stockmin-24">3.6 StockMin条数检查优化 (#24)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/stock/quotes.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 改为检查条数是否在合理范围内（如200-250），而非严格等于241
+2. 或按交易日类型（正常/节假日/停牌）分别判断</p>
+<h3 id="37-meta-33">3.7 meta合并保护 (#33)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/tushare.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 调换meta合并顺序: 先调用方meta，再内部meta，确保内部字段不被覆盖</p>
+<h3 id="38-import-34">3.8 清理未使用import (#34)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/index/sw.py</code></p>
+<p><strong>具体步骤</strong>:
+1. 删除<code>from urllib import request</code>和<code>from venv import logger</code></p>
+<hr />
+<h2 id="phase-4-2-3">Phase 4: 工程化改进（预计 2-3 天）</h2>
+<p><strong>目标</strong>: 代码重构、测试、部署优化</p>
+<h3 id="41-36">4.1 代码重复消除 (#36)</h3>
+<p><strong>涉及文件</strong>: <code>spiders/stock/moneyflow.py</code>, <code>spiders/stock/margin.py</code>等</p>
+<p><strong>具体步骤</strong>:
+1. 分析简单spider的共同模式
+2. 考虑配置化生成: 在schema YAML或单独配置中定义spider参数
+3. 或创建工厂函数动态生成spider类</p>
+<h3 id="42-44">4.2 添加测试覆盖 (#44)</h3>
+<p><strong>涉及文件</strong>: <code>tests/</code></p>
+<p><strong>具体步骤</strong>:
+1. 添加<code>tests/test_settings.py</code> - 验证配置加载和覆盖
+2. 添加<code>tests/test_pipelines.py</code> - 验证pipeline数据处理逻辑
+3. 添加<code>tests/test_db_engine.py</code> - 验证SQL生成和引擎创建
+4. 添加<code>tests/test_spiders.py</code> - 验证spider基类方法</p>
+<h3 id="43-schema-45">4.3 Schema验证机制 (#45)</h3>
+<p><strong>涉及文件</strong>: <code>schema/</code>, <code>settings.py</code>或新模块</p>
+<p><strong>具体步骤</strong>:
+1. 定义Pydantic模型<code>SchemaDefinition</code>
+2. 加载schema时进行校验
+3. 提前发现配置错误（如缺失data_type、非法列名等）</p>
+<h3 id="44-dockerfile-46">4.4 Dockerfile优化 (#46)</h3>
+<p><strong>涉及文件</strong>: <code>Dockerfile</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>ADD . .</code>改为精确的<code>COPY</code>指令
+2. 创建<code>.dockerignore</code>排除<code>.git/</code>、<code>config.yaml</code>、缓存等</p>
+<h3 id="45-github-actions-40">4.5 GitHub Actions版本锁定 (#40)</h3>
+<p><strong>涉及文件</strong>: <code>.github/workflows/</code></p>
+<p><strong>具体步骤</strong>:
+1. <code>actions/checkout@master</code> -&gt; <code>actions/checkout@v4</code>
+2. 评估使用官方<code>docker/build-push-action</code>替代第三方kaniko action
+3. 或固定第三方action到commit SHA</p>
+<h3 id="46-helm-chart-28-29">4.6 Helm Chart改进 (#28, #29)</h3>
+<p><strong>涉及文件</strong>: <code>deploy/tushare-integration/</code></p>
+<p><strong>具体步骤</strong>:
+1. CronJob名称加入job name前缀避免冲突
+2. 添加名称长度截断逻辑（限制63字符）
+3. 文档化subPath热更新限制</p>
+<h3 id="47-37-38">4.7 统一日志使用 (#37, #38)</h3>
+<p><strong>涉及文件</strong>: 多处</p>
+<p><strong>具体步骤</strong>:
+1. <code>manager.py:78</code>改为<code>logging.info</code>
+2. 统一spider内使用<code>spider.logger</code>，非spider代码使用<code>logging</code></p>
+<h3 id="48">4.8 其他低严重修复</h3>
+<ul>
+<li>
+<h1 id="39-jobsyaml-cron">39 <code>jobs.yaml</code> cron表达式同步</h1>
+</li>
+<li>
+<h1 id="41-settingspy">41 settings.py除零保护</h1>
+</li>
+<li>
+<h1 id="42-recordlogpipeline-start_time">42 RecordLogPipeline start_time冗余</h1>
+</li>
+<li>
+<h1 id="43-futweeklydetail">43 FutWeeklyDetail有序去重</h1>
+</li>
+<li>
+<h1 id="47-clickhouse-upsert">47 ClickHouse upsert文档化</h1>
+</li>
+<li>
+<h1 id="48-starrocks">48 StarRocks模板统一占位符</h1>
+</li>
+<li>
+<h1 id="49-configyaml">49 config.yaml配置合并</h1>
+</li>
+<li>
+<h1 id="50-mainpy">50 main.py基础结构</h1>
+</li>
+</ul>
+<hr />
+<h2 id="_2">执行时间表</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>内容</th>
+<th>预计时间</th>
+<th>涉及文件数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 1</td>
+<td>P0紧急修复</td>
+<td>1-2天</td>
+<td>~8</td>
+</tr>
+<tr>
+<td>Phase 2</td>
+<td>P1安全与正确性</td>
+<td>2-3天</td>
+<td>~12</td>
+</tr>
+<tr>
+<td>Phase 3</td>
+<td>P2稳定性改进</td>
+<td>2-3天</td>
+<td>~6</td>
+</tr>
+<tr>
+<td>Phase 4</td>
+<td>工程化改进</td>
+<td>2-3天</td>
+<td>~15</td>
+</tr>
+<tr>
+<td><strong>总计</strong></td>
+<td></td>
+<td><strong>7-11天</strong></td>
+<td><strong>~40</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">分支策略</h2>
+<pre><code>main
+  └── fix/code-review-2026-05-25  (当前分支)
+        ├── phase-1-p0-fixes      (Phase 1修复)
+        ├── phase-2-p1-fixes      (Phase 2修复)
+        ├── phase-3-p2-fixes      (Phase 3修复)
+        └── phase-4-engineering   (Phase 4改进)
+</code></pre>
+<p>建议每个Phase独立为一个PR，便于review和回滚。</p>
+<hr />
+<h2 id="_4">验证清单</h2>
+<p>每个Phase完成后执行:</p>
+<ul>
+<li>[ ] <code>black .</code> 和 <code>isort .</code> 通过</li>
+<li>[ ] <code>pytest</code> 通过（新增测试全部通过）</li>
+<li>[ ] 运行一个代表性spider（如<code>stock/basic/stock_basic</code>）确认正常</li>
+<li>[ ] 运行一个DailySpider（如<code>stock/quotes/daily</code>）确认增量采集正常</li>
+<li>[ ] Helm chart渲染通过: <code>helm template deploy/tushare-integration/</code></li>
+<li>[ ] 数据库连接监控确认无泄漏</li>
+</ul>
+<hr />
+<h2 id="_5">风险与注意事项</h2>
+<ol>
+<li><strong>Phase 1.2（替换time.sleep）</strong>: Twisted deferLater与Scrapy RetryMiddleware的集成需要仔细测试，确保重试计数和delay逻辑正确</li>
+<li><strong>Phase 1.4（消除requests）</strong>: 将同步分页改为异步回调链可能改变spider的执行顺序和内存使用模式，需监控</li>
+<li><strong>Phase 2.3（敏感信息配置）</strong>: Helm chart的Secret变更需要配合运维更新部署流程，有外部依赖</li>
+<li><strong>Phase 2.4（模块级副作用）</strong>: settings.py的改动影响整个项目的配置加载方式，需全面测试</li>
+<li><strong>Phase 2.7（跨数据库兼容）</strong>: today()函数的替换需在所有数据库环境（ClickHouse/MySQL/Doris）验证</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
